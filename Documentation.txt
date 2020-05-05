@@ -1,0 +1,30 @@
+Projetc:
+
+  KnowFlow : automatic water monitor:
+  https://www.dfrobot.com/blog-733.html
+  
+  KnwnFlow GitHub:
+  https://github.com/KnowFlow/KnowFlow_AWM
+
+Products : 
+
+  Gravity: KnowFlow Basic Kit - A DIY Water Monitoring Basic Kit:
+  https://www.dfrobot.com/product-1649.html
+
+  Gravity: Analog Electrical Conductivity Sensor / Meter V2 (K=1):
+  https://www.dfrobot.com/product-1123.html
+
+  Gravity: Analog pH Sensor / Meter Pro Kit For Arduino:
+  https://www.dfrobot.com/product-1110.html
+
+Wiki and Documentation:
+
+  Analog EC Meter: 
+  https://wiki.dfrobot.com/Analog_EC_Meter_SKU_DFR0300
+
+  pH meter:
+  https://wiki.dfrobot.com/PH_meter_SKU__SEN0161_
+
+  RTC module:
+  https://wiki.dfrobot.com/Gravity__I2C_SD2405_RTC_Module_SKU__DFR0469
+    
