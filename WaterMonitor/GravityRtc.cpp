@@ -38,7 +38,7 @@ void GravityRtc::setup()
 // Function Name: update()
 // Function Declaration: Update the sensor value
 //********************************************************************************************
-void GravityRtc::read()
+void GravityRtc::update()
 {
 	readRtc();
 	processRtc();	

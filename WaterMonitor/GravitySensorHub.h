@@ -51,4 +51,6 @@ public:
 
 	// Get the sensor data
 	double getValueBySensorNumber(int num);
+
+ void GravitySensorHub::calibrationBySensorNumber(int num);
 };

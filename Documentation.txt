@@ -2,14 +2,15 @@ Projetc:
 
   KnowFlow : automatic water monitor:
   https://www.dfrobot.com/blog-733.html
-  
-  KnwnFlow GitHub:
   https://github.com/KnowFlow/KnowFlow_AWM
 
-Products : 
+Associated products : 
 
   Gravity: KnowFlow Basic Kit - A DIY Water Monitoring Basic Kit:
   https://www.dfrobot.com/product-1649.html
+
+  Arduino Bluno with Bluetooth 4.0 (BLE):
+  https://www.dfrobot.com/product-1044.html
 
   Gravity: Analog Electrical Conductivity Sensor / Meter V2 (K=1):
   https://www.dfrobot.com/product-1123.html
@@ -19,12 +20,17 @@ Products :
 
 Wiki and Documentation:
 
+  Arduino Bluno with Bluetooth 4.0 (BLE):
+  https://wiki.dfrobot.com/Bluno_SKU_DFR0267
+
   Analog EC Meter: 
   https://wiki.dfrobot.com/Analog_EC_Meter_SKU_DFR0300
 
   pH meter:
-  https://wiki.dfrobot.com/PH_meter_SKU__SEN0161_
+  https://wiki.dfrobot.com/Gravity__Analog_pH_Sensor_Meter_Kit_V2_SKU_SEN0161-V2
+  https://github.com/DFRobot/DFRobot_PH
 
   RTC module:
   https://wiki.dfrobot.com/Gravity__I2C_SD2405_RTC_Module_SKU__DFR0469
+  https://github.com/DFRobot/Gravity-I2C-SD2405-RTC-Module
     

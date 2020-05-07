@@ -51,7 +51,7 @@ public:
 	void setup();
 
 	//Update sensor data
-	void read();
+	void update();
 	
 
 private:
@@ -77,4 +77,3 @@ private:
 	uint8_t conv2d(const char* p);
 
 };
-

@@ -22,6 +22,9 @@
 #pragma once
 #include <Arduino.h>
 #include "ISensor.h"
+
+#define ReceivedBufferLength 10  //length of the Serial CMD buffer
+
 class GravityPh:public ISensor
 {
 public:
@@ -33,12 +36,17 @@ public:
 
 	// Take the sample interval
 	int samplingInterval;
+ 
 private:
 	static const int arrayLength = 5;
 	int pHArray [arrayLength];    // stores the average value of the sensor return data
 	double pHValue, voltage;
+  double acidVoltage, neutralVoltage; // stored values for calibration
 	double averageVoltage;
 	double sum;
+  char   _cmdReceivedBuffer[ReceivedBufferLength];  //store the Serial CMD
+  byte   _cmdReceivedBufferIndex;
+  
 
 public:
 	GravityPh();
@@ -51,5 +59,12 @@ public:
 
 	// Get the sensor data
 	double getValue();
-};
 
+  // Calibration
+   void  calibration();  //calibration by Serial CMD
+
+private:
+    boolean cmdSerialDataAvailable();
+    void    phCalibration(byte mode); // calibration process, wirte key parameters to EEPROM
+    byte    cmdParse();
+};
