@@ -58,6 +58,7 @@ SdService sdService = SdService(sensorHub.sensors);
 void setup() {
 	Serial.begin(9600);
 	rtc.setup();
+  rtc.initRtc();
 	sensorHub.setup();
 	sdService.setup();
 
@@ -81,10 +82,29 @@ void loop() {
 	rtc.update();
 	sensorHub.update();
 	sdService.update();
-
+  
+  Serial.print("   Date :  ");
+  Serial.print(rtc.month);
+  Serial.print("/");
+  Serial.print(rtc.day);
+  Serial.print("/");
+  Serial.print(rtc.year);
+  Serial.print("  ");
+  Serial.print(rtc.hour);
+  Serial.print(":");
+  Serial.print(rtc.minute);
+  Serial.print(":"); 
+  Serial.print(rtc.second);
+  Serial.print("  pH= ");
+  Serial.print(sensorHub.getValueBySensorNumber(0));
+  Serial.print("   EC= ");
+  Serial.println(sensorHub.getValueBySensorNumber(3));
+  delay(1000);
+  
+}
 	// ************************* Serial debugging ******************
-	if(millis() - updateTime > 2000)
-	{
+	/*if(millis() - updateTime > 2000)
+	{/*
 		updateTime = millis();
 		Serial.print(F("ph= "));
 		Serial.print(sensorHub.getValueBySensorNumber(0));
@@ -95,9 +115,9 @@ void loop() {
 		Serial.print(F("  Ec= "));
 		Serial.print(sensorHub.getValueBySensorNumber(3));
 		Serial.print(F("  Orp= "));
-		Serial.println(sensorHub.getValueBySensorNumber(4));
-	}
-}
+		Serial.println(sensorHub.getValueBySensorNumber(4)); 
+	}*/
+
 
 
 
@@ -130,4 +150,3 @@ void loop() {
 //Serial.print(rtc.minute);
 //Serial.print("   Second = ");//second
 //Serial.println(rtc.second);
-

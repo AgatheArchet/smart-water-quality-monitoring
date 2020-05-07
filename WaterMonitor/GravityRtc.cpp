@@ -24,7 +24,7 @@
 #include <Wire.h>     
 
 
-GravityRtc::GravityRtc() :year(2017), month(4), day(17), week(4), hour(14), minute(5),second(0)
+GravityRtc::GravityRtc() :year(2020), month(4), day(17), week(4), hour(14), minute(5),second(0)
 {
 }
 
@@ -84,6 +84,7 @@ void GravityRtc::initRtc()
 
 	WriteTimeOff();
 }
+
 
 
 //********************************************************************************************
