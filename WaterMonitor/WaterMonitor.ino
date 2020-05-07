@@ -42,10 +42,10 @@
 #include <SPI.h>
 #include <SD.h>
 #include <Wire.h>
-#include "GravitySensorHub.h"
+// #include "GravitySensorHub.h"
 #include "GravityRtc.h"
 #include "OneWire.h"
-#include "SdService.h"
+// #include "SdService.h"
 #include "Debug.h"
 #include <SoftwareSerial.h>
 
@@ -53,14 +53,15 @@
 GravityRtc rtc;
 
 // sensor monitor
-GravitySensorHub sensorHub;
-SdService sdService = SdService(sensorHub.sensors);
+//GravitySensorHub sensorHub;
+//SdService sdService = SdService(sensorHub.sensors);
 void setup() {
 	Serial.begin(9600);
 	rtc.setup();
-  rtc.initRtc();
-	sensorHub.setup();
-	sdService.setup();
+  rtc.adjustRtc(F(__DATE__), F(__TIME__));
+  //rtc.adjustRtc(2020,1,31,3,12,46,0);  //Set time: (year,month,day,dayOfWeek,hour,minute,second), here : 1/31/2020, Wenesday, 12:46:00
+	//sensorHub.setup();
+	//sdService.setup();
 
 }
 
@@ -79,9 +80,9 @@ void setup() {
 unsigned long updateTime = 0;
 
 void loop() {
-	rtc.update();
-	sensorHub.update();
-	sdService.update();
+	rtc.read();
+	//sensorHub.update();
+	//sdService.update();
   
   Serial.print("   Date :  ");
   Serial.print(rtc.month);
@@ -89,16 +90,19 @@ void loop() {
   Serial.print(rtc.day);
   Serial.print("/");
   Serial.print(rtc.year);
-  Serial.print("  ");
+  Serial.print(",");
+  Serial.print(rtc.week);
+  Serial.print(",");
   Serial.print(rtc.hour);
   Serial.print(":");
   Serial.print(rtc.minute);
   Serial.print(":"); 
-  Serial.print(rtc.second);
+  Serial.println(rtc.second);
+  /*
   Serial.print("  pH= ");
   Serial.print(sensorHub.getValueBySensorNumber(0));
   Serial.print("   EC= ");
-  Serial.println(sensorHub.getValueBySensorNumber(3));
+  Serial.println(sensorHub.getValueBySensorNumber(3)); */
   delay(1000);
   
 }
