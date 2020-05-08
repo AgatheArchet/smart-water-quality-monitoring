@@ -28,78 +28,79 @@
 #define PHVALUEADDR 0x00    //the start address of the pH calibration parameters stored in the EEPROM
 
 
-GravityPh::GravityPh():phSensorPin(A2), samplingInterval(30),pHValue(0),
-voltage(1500), sum(0), acidVoltage(2032.44), neutralVoltage(1500.0)
+GravityPh::GravityPh():phSensorPin(A2), samplingInterval(25),_pHValue(0),_averageVoltage(0),
+_voltage(1500), _sumVoltage(0),_acidVoltage(2032.44), _neutralVoltage(1500.0), _temperature(25.0)
 {
 }
 
-//********************************************************************************************
-// function name: setup ()
-// Function Description: Initializes the ph sensor
-//********************************************************************************************
+
 void GravityPh::setup()
 {
-	pinMode(phSensorPin, INPUT);
-  Serial.print("Set up ok!");
-  
-     EEPROM_read(PHVALUEADDR, this->neutralVoltage);  //load the neutral (pH = 7.0)voltage of the pH board from the EEPROM
-    Serial.print("neutralVoltage:");
-    Serial.println(this->neutralVoltage);
-    if(EEPROM.read(PHVALUEADDR)==0xFF && EEPROM.read(PHVALUEADDR+1)==0xFF && EEPROM.read(PHVALUEADDR+2)==0xFF && EEPROM.read(PHVALUEADDR+3)==0xFF){
-        this->neutralVoltage = 1500.0;  // new EEPROM, write typical voltage
-        EEPROM_write(PHVALUEADDR, this->neutralVoltage);
-    }
-    EEPROM_read(PHVALUEADDR+4, this->acidVoltage);//load the acid (pH = 4.0) voltage of the pH board from the EEPROM
-    Serial.print("acidVoltage:");
-    Serial.println(this->acidVoltage);
-    if(EEPROM.read(PHVALUEADDR+4)==0xFF && EEPROM.read(PHVALUEADDR+5)==0xFF && EEPROM.read(PHVALUEADDR+6)==0xFF && EEPROM.read(PHVALUEADDR+7)==0xFF){
-        this->acidVoltage = 2032.44;  // new EEPROM, write typical voltage
-        EEPROM_write(PHVALUEADDR+4, this->acidVoltage);
-    }  
+    pinMode(phSensorPin, INPUT);
+    
+       EEPROM_read(PHVALUEADDR, this->_neutralVoltage);  //load the neutral (pH = 7.0)voltage of the pH board from the EEPROM
+      if(EEPROM.read(PHVALUEADDR)==0xFF && EEPROM.read(PHVALUEADDR+1)==0xFF && EEPROM.read(PHVALUEADDR+2)==0xFF && EEPROM.read(PHVALUEADDR+3)==0xFF)
+      {
+          this->_neutralVoltage = 1500.0;  // new EEPROM, write typical voltage
+          EEPROM_write(PHVALUEADDR, this->_neutralVoltage);
+      }
+      EEPROM_read(PHVALUEADDR+4, this->_acidVoltage);//load the acid (pH = 4.0) voltage of the pH board from the EEPROM
+      if(EEPROM.read(PHVALUEADDR+4)==0xFF && EEPROM.read(PHVALUEADDR+5)==0xFF && EEPROM.read(PHVALUEADDR+6)==0xFF && EEPROM.read(PHVALUEADDR+7)==0xFF)
+      {
+          this->_acidVoltage = 2032.44;  // new EEPROM, write typical voltage
+          EEPROM_write(PHVALUEADDR+4, this->_acidVoltage);
+      }  
 }
 
 
-//********************************************************************************************
-// function name: update ()
-// Function Description: Update the sensor value
-//********************************************************************************************
 void GravityPh::update()
 {
-  static unsigned long samplingTime = millis();
-  static unsigned long printTime = millis();
-  static int pHArrayIndex = 0;
-  if (millis() - samplingTime > samplingInterval)
-  {
-    samplingTime = millis();
-    pHArray[pHArrayIndex++] = analogRead(this->phSensorPin);
-
-    if (pHArrayIndex == arrayLength)   // 5 * 20 = 100ms
-    {
-      pHArrayIndex = 0;
-      for (int i = 0; i < arrayLength; i++)
-        this->sum += pHArray[i];
-      averageVoltage = this->sum / arrayLength;
-      this->sum = 0;
-      voltage = averageVoltage*5.0 / 1024.0;
-      pHValue = 3.5*voltage + 0;
-    }
-  }
+    calculateAnalogAverage();
+    calculatePh();
+    calibration();
 }
 
 
-//********************************************************************************************
-// function name: getValue ()
-// Function Description: Returns the sensor data
-//********************************************************************************************
+void GravityPh::calculateAnalogAverage()
+{
+    static unsigned long samplingTime = millis();
+    static unsigned long printTime = millis();
+    static int pHArrayIndex = 0;
+    if (millis() - samplingTime > samplingInterval)
+    {
+       samplingTime = millis();
+        _pHArray[pHArrayIndex++] = analogRead(this->phSensorPin)/1024.0*5000;
+      
+        if (pHArrayIndex == _arrayLength)   // 5 * 20 = 100ms
+        {
+             pHArrayIndex = 0;
+             for (int i = 0; i < _arrayLength; i++)
+             this->_sumVoltage += _pHArray[i];
+             this->_averageVoltage = this->_sumVoltage / _arrayLength;
+             this->_sumVoltage = 0;
+         }
+    }
+}
+
+
+void GravityPh::calculatePh()
+{
+    this->_voltage = this->_averageVoltage;
+    float slope = (7.0-4.0)/((this->_neutralVoltage-1500.0)/3.0 - (this->_acidVoltage-1500.0)/3.0);  // two point: (_neutralVoltage,7.0),(__acidVoltage,4.0)
+    float intercept =  7.0 - slope*(this->_neutralVoltage-1500.0)/3.0;
+    this->_pHValue = slope*(this->_voltage-1500.0)/3.0+intercept;  //y = k*x + b
+}
+
+
 double GravityPh::getValue()
 {
-	return this->pHValue;
+	 return this->_pHValue;
 }
 
 void GravityPh::calibration()
 {
-    this->voltage = analogRead(this->phSensorPin)/1024.0*5000;
-    if(cmdSerialDataAvailable() > 0){
+    if(cmdSerialDataAvailable() > 0)
+    {
         phCalibration(cmdParse());  // if received Serial CMD from the serial monitor, enter into the calibration mode
     }
 }
@@ -109,13 +110,15 @@ boolean GravityPh::cmdSerialDataAvailable()
     char cmdReceivedChar;
     static unsigned long cmdReceivedTimeOut = millis();
     while(Serial.available()>0){
-        if(millis() - cmdReceivedTimeOut > 500U){
+        if(millis() - cmdReceivedTimeOut > 500U)
+        {
             this->_cmdReceivedBufferIndex = 0;
             memset(this->_cmdReceivedBuffer,0,(ReceivedBufferLength));
         }
         cmdReceivedTimeOut = millis();
         cmdReceivedChar = Serial.read();
-        if (cmdReceivedChar == '\n' || this->_cmdReceivedBufferIndex==ReceivedBufferLength-1){
+        if (cmdReceivedChar == '\n' || this->_cmdReceivedBufferIndex==ReceivedBufferLength-1)
+        {
             this->_cmdReceivedBufferIndex = 0;
             strupr(this->_cmdReceivedBuffer);
             return true;
@@ -130,11 +133,14 @@ boolean GravityPh::cmdSerialDataAvailable()
 byte GravityPh::cmdParse()
 {
     byte modeIndex = 0;
-    if(strstr(this->_cmdReceivedBuffer, "ENTERPH")      != NULL){
+    if(strstr(this->_cmdReceivedBuffer, "ENTERPH")      != NULL)
+    {
         modeIndex = 1;
-    }else if(strstr(this->_cmdReceivedBuffer, "EXITPH") != NULL){
+    }else if(strstr(this->_cmdReceivedBuffer, "EXITPH") != NULL)
+    {
         modeIndex = 3;
-    }else if(strstr(this->_cmdReceivedBuffer, "CALPH")  != NULL){
+    }else if(strstr(this->_cmdReceivedBuffer, "CALPH")  != NULL)
+    {
         modeIndex = 2;
     }
     return modeIndex;
@@ -147,7 +153,8 @@ void GravityPh::phCalibration(byte mode)
     static boolean enterCalibrationFlag = 0;
     switch(mode){
         case 0:
-        if(enterCalibrationFlag){
+        if(enterCalibrationFlag)
+        {
             Serial.println(F(">>>Command Error<<<"));
         }
         break;
@@ -163,17 +170,18 @@ void GravityPh::phCalibration(byte mode)
 
         case 2:
         if(enterCalibrationFlag){
-            if((this->voltage>1322)&&(this->voltage<1678)){        // buffer solution:7.0{
+            if((this->_voltage>1322)&&(this->_voltage<1678))
+            {        // buffer solution:7.0{
                 Serial.println();
                 Serial.print(F(">>>Buffer Solution:7.0"));
-                this->neutralVoltage =  this->voltage;
+                this->_neutralVoltage =  this->_voltage;
                 Serial.println(F(",Send EXITPH to Save and Exit<<<"));
                 Serial.println();
                 phCalibrationFinish = 1;
-            }else if((this->voltage>1854)&&(this->voltage<2210)){  //buffer solution:4.0
+            }else if((this->_voltage>1854)&&(this->_voltage<2210)){  //buffer solution:4.0
                 Serial.println();
                 Serial.print(F(">>>Buffer Solution:4.0"));
-                this->acidVoltage =  this->voltage;
+                this->_acidVoltage =  this->_voltage;
                 Serial.println(F(",Send EXITPH to Save and Exit<<<")); 
                 Serial.println();
                 phCalibrationFinish = 1;
@@ -187,14 +195,18 @@ void GravityPh::phCalibration(byte mode)
         break;
 
         case 3:
-        if(enterCalibrationFlag){
+        if(enterCalibrationFlag)
+        {
             Serial.println();
-            if(phCalibrationFinish){
-                if((this->voltage>1322)&&(this->voltage<1678)){
-                    EEPROM_write(PHVALUEADDR, this->neutralVoltage);
-                }else if((this->voltage>1854)&&(this->voltage<2210)){
-                    EEPROM_write(PHVALUEADDR+4, this->acidVoltage);
-                }
+            if(phCalibrationFinish)
+            {
+                if((this->_voltage>1322)&&(this->_voltage<1678))
+                {
+                    EEPROM_write(PHVALUEADDR, this->_neutralVoltage);
+                }else if((this->_voltage>1854)&&(this->_voltage<2210))
+                          {
+                             EEPROM_write(PHVALUEADDR+4, this->_acidVoltage);
+                           }
                 Serial.print(F(">>>Calibration Successful"));
             }else{
                 Serial.print(F(">>>Calibration Failed"));

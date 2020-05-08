@@ -24,6 +24,7 @@
 #include "ISensor.h"
 
 // external GravityTemperature ecTemperature;
+#define ReceivedBufferLength 10  //length of the Serial CMD buffer
 
 class GravityEc:public ISensor
 {
@@ -33,6 +34,12 @@ public:
 
 	// Conductivity values
 	double ECcurrent;
+
+ // sample and print interval
+  unsigned long AnalogSampleTime;
+  unsigned long printTime;
+  unsigned long AnalogSampleInterval;
+  unsigned long printInterval ;
 
 
 public:
@@ -50,26 +57,37 @@ public:
 
 private:
 	// point to the temperature sensor pointer
-	ISensor* ecTemperature = NULL;
+	ISensor* _ecTemperature = NULL;
 
 
-	static const int numReadings = 5;
-	unsigned int readings[numReadings] = { 0 };      // the readings from the analog input
-	int index;
-	double sum;
-	unsigned long AnalogValueTotal;      // the running total
-	unsigned int AnalogAverage;
-	unsigned int averageVoltage;
-	unsigned long AnalogSampleTime;
-	unsigned long printTime;
-	unsigned  long tempSampleTime;
-	unsigned long AnalogSampleInterval;
-	unsigned long printInterval ;
+	static const int _numReadings = 5;
+	unsigned int _readings[_numReadings] = { 0 };      // the readings from the analog input
+	double _sumVoltage;
+	unsigned long _AnalogValueTotal;      // the running total
+	unsigned int _AnalogAverage;
+	unsigned int _averageVoltage;
 
+
+
+  float  _kvalue;
+  float  _kvalueLow;
+  float  _kvalueHigh;
+  float  _voltage;
+  float  _temperature;
+  float  _rawEC;
+
+  char   _cmdReceivedBuffer[ReceivedBufferLength];  //store the Serial CMD
+  byte   _cmdReceivedBufferIndex;
+
+private:
 	// Calculate the average
   void calculateAnalogAverage();
 
 	// Calculate the conductivity
 	void calculateEc();
-};
 
+ void calibration();
+ boolean cmdSerialDataAvailable();
+ byte cmdParse();
+ void ecCalibration(byte mode);
+};

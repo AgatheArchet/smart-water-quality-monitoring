@@ -21,5 +21,5 @@ public:
 	virtual void setup()		= 0;
 	virtual void update()		= 0;
 	virtual double getValue()	= 0;
-  virtual void calibration() = 0;
+  //virtual void calibration() = 0;
 };

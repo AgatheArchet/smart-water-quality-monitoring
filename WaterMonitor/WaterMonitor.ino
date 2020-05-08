@@ -82,9 +82,11 @@ void loop() {
 	//rtc.update();
 	sensorHub.update();
 	//sdService.update();
-  Serial.print("\n tour : "); Serial.println(i);
-  sensorHub.calibrationBySensorNumber(0);    
- Serial.print(sensorHub.getValueBySensorNumber(0));
+ Serial.print(" tour : "); Serial.print(i);   
+ Serial.print("   pH : "); Serial.print(sensorHub.getValueBySensorNumber(0));
+ Serial.print("   EC : "); Serial.println(sensorHub.getValueBySensorNumber(3));
+
+ //TO DO : add a propoer calibration for EC sensor OR think again how to calibrate...
   i++;
   /* Serial.print("   Date :  ");
   Serial.print(rtc.month);
@@ -105,7 +107,7 @@ void loop() {
   Serial.print(sensorHub.getValueBySensorNumber(0));
   Serial.print("   EC= ");
   Serial.println(sensorHub.getValueBySensorNumber(3)); */
-  delay(500);
+  delay(1000);
   
 }
 

@@ -51,6 +51,4 @@ public:
 
 	// Get the sensor data
 	double getValueBySensorNumber(int num);
-
- void calibrationBySensorNumber(int num);
 };
