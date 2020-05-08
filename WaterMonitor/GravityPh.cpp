@@ -28,8 +28,8 @@
 #define PHVALUEADDR 0x00    //the start address of the pH calibration parameters stored in the EEPROM
 
 
-GravityPh::GravityPh():phSensorPin(A2), offset(0.0f), samplingInterval(30),
-pHValue(0),voltage(0), sum(0), acidVoltage(2032.44), neutralVoltage(1500.0)
+GravityPh::GravityPh():phSensorPin(A2), samplingInterval(30),pHValue(0),
+voltage(1500), sum(0), acidVoltage(2032.44), neutralVoltage(1500.0)
 {
 }
 
@@ -55,9 +55,7 @@ void GravityPh::setup()
     if(EEPROM.read(PHVALUEADDR+4)==0xFF && EEPROM.read(PHVALUEADDR+5)==0xFF && EEPROM.read(PHVALUEADDR+6)==0xFF && EEPROM.read(PHVALUEADDR+7)==0xFF){
         this->acidVoltage = 2032.44;  // new EEPROM, write typical voltage
         EEPROM_write(PHVALUEADDR+4, this->acidVoltage);
-    }
-    Serial.println("Setup ok !");
-    
+    }  
 }
 
 
@@ -67,28 +65,25 @@ void GravityPh::setup()
 //********************************************************************************************
 void GravityPh::update()
 {
-	static unsigned long samplingTime = millis();
-	static unsigned long printTime = millis();
-	static int pHArrayIndex = 0;
-	if (millis() - samplingTime > samplingInterval)
-	{
-		samplingTime = millis();
-		pHArray[pHArrayIndex++] = analogRead(this->phSensorPin);
+  static unsigned long samplingTime = millis();
+  static unsigned long printTime = millis();
+  static int pHArrayIndex = 0;
+  if (millis() - samplingTime > samplingInterval)
+  {
+    samplingTime = millis();
+    pHArray[pHArrayIndex++] = analogRead(this->phSensorPin);
 
-		if (pHArrayIndex == arrayLength)   // 5 * 20 = 100ms
-		{
-			pHArrayIndex = 0;
-			for (int i = 0; i < arrayLength; i++)
-				this->sum += pHArray[i];
-			averageVoltage = this->sum / arrayLength;
-			this->sum = 0;
-      float slope = (7.0-4.0)/((this->neutralVoltage-1500.0)/3.0 - (this->acidVoltage-1500.0)/3.0);  // two point: (neutralVoltage,7.0),(acidVoltage,4.0)
-      float intercept =  7.0 - slope*(this->neutralVoltage-1500.0)/3.0;
-			voltage = averageVoltage*5.0 / 1024.0;
-			this->pHValue = slope*voltage + intercept;
-		}
-
-	}
+    if (pHArrayIndex == arrayLength)   // 5 * 20 = 100ms
+    {
+      pHArrayIndex = 0;
+      for (int i = 0; i < arrayLength; i++)
+        this->sum += pHArray[i];
+      averageVoltage = this->sum / arrayLength;
+      this->sum = 0;
+      voltage = averageVoltage*5.0 / 1024.0;
+      pHValue = 3.5*voltage + 0;
+    }
+  }
 }
 
 
@@ -104,7 +99,6 @@ double GravityPh::getValue()
 void GravityPh::calibration()
 {
     this->voltage = analogRead(this->phSensorPin)/1024.0*5000;
-    Serial.print("calib");
     if(cmdSerialDataAvailable() > 0){
         phCalibration(cmdParse());  // if received Serial CMD from the serial monitor, enter into the calibration mode
     }
