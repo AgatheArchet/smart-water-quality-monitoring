@@ -43,22 +43,22 @@
 #include <SD.h>
 #include <Wire.h>
 #include "GravitySensorHub.h"
-//#include "GravityRtc.h"
+#include "GravityRtc.h"
 #include "OneWire.h"
 // #include "SdService.h"
 #include "Debug.h"
 #include <SoftwareSerial.h>
 
 // clock module
-//GravityRtc rtc;
+GravityRtc rtc;
 
 // sensor monitor
 GravitySensorHub sensorHub;
 //SdService sdService = SdService(sensorHub.sensors);
 void setup() {
 	Serial.begin(9600);
-	//rtc.setup();
-  //rtc.adjustRtc(F(__DATE__), F(__TIME__)); //Set time given by computer
+	rtc.setup();
+  rtc.adjustRtc(F(__DATE__), F(__TIME__)); //Set time given by computer
   //rtc.adjustRtc(2020,1,31,4,12,46,0);  //Set time: (year,month,day,dayOfWeek,hour,minute,second), here : 1/31/2020, Wenesday, 12:46:00
 	sensorHub.setup();
 	//sdService.setup();
@@ -79,36 +79,40 @@ void setup() {
 unsigned long updateTime = 0;
 int i =0;
 void loop() {
-	//rtc.update();
+	rtc.update();
 	sensorHub.update();
 	//sdService.update();
- Serial.print(" tour : "); Serial.println(i);   
- Serial.print("   pH : "); Serial.print(sensorHub.getValueBySensorNumber(0));
- Serial.print("   EC : "); Serial.println(sensorHub.getValueBySensorNumber(3));
-
- sensorHub.calibrate();
  
-  i++;
-  /* Serial.print("   Date :  ");
-  Serial.print(rtc.month);
-  Serial.print("/");
-  Serial.print(rtc.day);
-  Serial.print("/");
-  Serial.print(rtc.year);
-  Serial.print(",");
-  Serial.print(rtc.week);
-  Serial.print(",");
-  Serial.print(rtc.hour);
-  Serial.print(":");
-  Serial.print(rtc.minute);
-  Serial.print(":"); 
-  Serial.println(rtc.second); */
-  /*
-  Serial.print("  pH= ");
-  Serial.print(sensorHub.getValueBySensorNumber(0));
-  Serial.print("   EC= ");
-  Serial.println(sensorHub.getValueBySensorNumber(3)); */
-  delay(1000);
+  i++;  
+  sensorHub.calibrate();
+  
+  if(millis() - updateTime > 2000)
+  {
+    updateTime = millis();
+    Serial.print(" tour : "); 
+    Serial.print(i); 
+    
+    Serial.print("   pH : "); 
+    Serial.print(sensorHub.getValueBySensorNumber(0));
+    Serial.print("   EC : "); 
+    Serial.print(sensorHub.getValueBySensorNumber(3)); 
+    Serial.print(" ms/cm");
+
+    Serial.print("   Date :  ");
+    Serial.print(rtc.month);
+    Serial.print("/");
+    Serial.print(rtc.day);
+    Serial.print("/");
+    Serial.print(rtc.year);
+    Serial.print(",");
+    Serial.print(rtc.week);
+    Serial.print(",");
+    Serial.print(rtc.hour);
+    Serial.print(":");
+    Serial.print(rtc.minute);
+    Serial.print(":"); 
+    Serial.println(rtc.second); 
+  }
   
 }
 

@@ -57,14 +57,15 @@ void GravityEc::setup()
 		_readings[thisReading] = 0;
 
   EEPROM_read(KVALUEADDR, this->_kvalueLow);        //read the calibrated K value from EEPROM
-  if(EEPROM.read(KVALUEADDR)==0xFF && EEPROM.read(KVALUEADDR+1)==0xFF && EEPROM.read(KVALUEADDR+2)==0xFF && EEPROM.read(KVALUEADDR+3)==0xFF){
-        this->_kvalueLow = 1.0;                       // For new EEPROM, write default value( K = 1.0) to EEPROM
-        EEPROM_write(KVALUEADDR, this->_kvalueLow);
+  if(EEPROM.read(KVALUEADDR)==0xFF && EEPROM.read(KVALUEADDR+1)==0xFF && EEPROM.read(KVALUEADDR+2)==0xFF && EEPROM.read(KVALUEADDR+3)==0xFF)
+  {
+    this->_kvalueLow = 1.0;                       // For new EEPROM, write default value( K = 1.0) to EEPROM
+    EEPROM_write(KVALUEADDR, this->_kvalueLow);
   }
   EEPROM_read(KVALUEADDR+4, this->_kvalueHigh);     //read the calibrated K value from EEPRM
   if(EEPROM.read(KVALUEADDR+4)==0xFF && EEPROM.read(KVALUEADDR+5)==0xFF && EEPROM.read(KVALUEADDR+6)==0xFF && EEPROM.read(KVALUEADDR+7)==0xFF){
-        this->_kvalueHigh = 1.0;                      // For new EEPROM, write default value( K = 1.0) to EEPROM
-        EEPROM_write(KVALUEADDR+4, this->_kvalueHigh);
+    this->_kvalueHigh = 1.0;                      // For new EEPROM, write default value( K = 1.0) to EEPROM
+    EEPROM_write(KVALUEADDR+4, this->_kvalueHigh);
   }
   this->_kvalue =  this->_kvalueLow;                // set default K value: K = kvalueLow 
 }
@@ -78,7 +79,6 @@ void GravityEc::update()
 {
 	calculateAnalogAverage();
 	//calculateEc();
-  //calibration();
 }
 
 
@@ -88,7 +88,7 @@ void GravityEc::update()
 //********************************************************************************************
 double GravityEc::getValue()
 {
-	return this->ECcurrent;
+ return this->ECcurrent;
 }
 
 
@@ -102,7 +102,8 @@ void GravityEc::calculateAnalogAverage()
 	if (millis() - AnalogSampleTime >= AnalogSampleInterval)
 	{
 		AnalogSampleTime = millis();
-		_readings[ecArrayIndex++] = analogRead(ecSensorPin);
+		_readings[ecArrayIndex++] = analogRead(ecSensorPin)/1024.0*5000;
+    //Serial.print("value :"); Serial.print(_readings[ecArrayIndex]);
 		if (ecArrayIndex == _numReadings)
 		{
 			ecArrayIndex = 0;
@@ -121,30 +122,28 @@ void GravityEc::calculateAnalogAverage()
 //********************************************************************************************
 void GravityEc::calculateEc()
 {
-
-    this->_averageVoltage = this->_AnalogAverage*5000.0 / 1024.0;
-    double TempCoefficient = 1.0 + 0.0185*(this->_ecTemperature->getValue() - 25.0);    //temperature compensation formula: fFinalResult(25^C) = fFinalResult(current)/(1.0+0.0185*(fTP-25.0));
-
-    double CoefficientVolatge = (double)this->_averageVoltage / TempCoefficient;
-    
-    if (CoefficientVolatge < 150) {
-      this->ECcurrent = 0;
-      return;
+  this->_averageVoltage = this->_AnalogAverage;
+  double TempCoefficient = 1.0 + 0.0185*(this->_ecTemperature->getValue() - 25.0);    //temperature compensation formula: fFinalResult(25^C) = fFinalResult(current)/(1.0+0.0185*(fTP-25.0));
+  double CoefficientVolatge = (double)this->_averageVoltage / TempCoefficient;
+    if (CoefficientVolatge < 150) 
+    {
+     this->ECcurrent = 0;
+     return;
     }
     else if (CoefficientVolatge > 3300)
     {
-      this->ECcurrent = 20;
-      return;
+     this->ECcurrent = 20;
+     return;
     }
     else
     {
-      if (CoefficientVolatge <= 448)
-        this->ECcurrent = 6.84*CoefficientVolatge - 64.32;   //1ms/cm<EC<=3ms/cm
-      else if (CoefficientVolatge <= 1457)
-        this->ECcurrent = 6.98*CoefficientVolatge - 127;   //3ms/cm<EC<=10ms/cm
-      else
-        ECcurrent = 5.3*CoefficientVolatge + 2278;                           //10ms/cm<EC<20ms/cm
-      this->ECcurrent /= 1000;    //convert us/cm to ms/cm
+     if (CoefficientVolatge <= 448)
+      this->ECcurrent = 6.84*CoefficientVolatge - 64.32;   //1ms/cm<EC<=3ms/cm
+     else if (CoefficientVolatge <= 1457)
+      this->ECcurrent = 6.98*CoefficientVolatge - 127;   //3ms/cm<EC<=10ms/cm
+     else
+      ECcurrent = 5.3*CoefficientVolatge + 2278;                           //10ms/cm<EC<20ms/cm
+     this->ECcurrent /= 1000;    //convert us/cm to ms/cm
     } 
   
 }
@@ -152,74 +151,74 @@ void GravityEc::calculateEc()
 
 void GravityEc::calibration(byte mode)
 {
-    char *receivedBufferPtr;
-    static boolean ecCalibrationFinish  = 0;
-    static boolean enterCalibrationFlag = 0;
-    static float compECsolution;
-    float KValueTemp;
-    switch(mode){
-        case 0:
-        if(enterCalibrationFlag){
-            Serial.println(F(">>>Command Error<<<"));
-        }
-        break;
-        case 4:
-        enterCalibrationFlag = 1;
-        ecCalibrationFinish  = 0;
-        Serial.println();
-        Serial.println(F(">>>Enter EC Calibration Mode<<<"));
-        Serial.println(F(">>>Please put the probe into the 1413us/cm or 12.88ms/cm buffer solution<<<"));
-        Serial.println();
-        break;
-        case 5:
-        if(enterCalibrationFlag){
-            if((this->_rawEC>0.9)&&(this->_rawEC<1.9)){                         //recognize 1.413us/cm buffer solution
-                compECsolution = 1.413*(1.0+0.0185*(this->_temperature-25.0));  //temperature compensation
-            }else if((this->_rawEC>9)&&(this->_rawEC<16.8)){                    //recognize 12.88ms/cm buffer solution
-                compECsolution = 12.88*(1.0+0.0185*(this->_temperature-25.0));  //temperature compensation
-            }else{
-                Serial.print(F(">>>Buffer Solution Error Try Again<<<   "));
-                ecCalibrationFinish = 0;
-            }
-            KValueTemp = RES2*ECREF*compECsolution/1000.0/this->_voltage;       //calibrate the k value
-            if((KValueTemp>0.5) && (KValueTemp<1.5)){
-                Serial.println();
-                Serial.print(F(">>>Successful,K:"));
-                Serial.print(KValueTemp);
-                Serial.println(F(", Send EXITEC to Save and Exit<<<"));
-                if((this->_rawEC>0.9)&&(this->_rawEC<1.9)){
-                    this->_kvalueLow =  KValueTemp;
-                }else if((this->_rawEC>9)&&(this->_rawEC<16.8)){
-                    this->_kvalueHigh =  KValueTemp;
-                }
-                ecCalibrationFinish = 1;
+  char *receivedBufferPtr;
+  static boolean ecCalibrationFinish  = 0;
+  static boolean enterCalibrationFlag = 0;
+  static float compECsolution;
+  float KValueTemp;
+  switch(mode){
+      case 0:
+      if(enterCalibrationFlag){
+          Serial.println(F(">>>Command Error<<<"));
+      }
+      break;
+      case 4:
+      enterCalibrationFlag = 1;
+      ecCalibrationFinish  = 0;
+      Serial.println();
+      Serial.println(F(">>>Enter EC Calibration Mode<<<"));
+      Serial.println(F(">>>Please put the probe into the 1413us/cm or 12.88ms/cm buffer solution<<<"));
+      Serial.println();
+      break;
+      case 5:
+      if(enterCalibrationFlag){
+          if((this->_rawEC>0.9)&&(this->_rawEC<1.9)){                         //recognize 1.413us/cm buffer solution
+              compECsolution = 1.413*(1.0+0.0185*(this->_temperature-25.0));  //temperature compensation
+          }else if((this->_rawEC>9)&&(this->_rawEC<16.8)){                    //recognize 12.88ms/cm buffer solution
+              compECsolution = 12.88*(1.0+0.0185*(this->_temperature-25.0));  //temperature compensation
+          }else{
+              Serial.print(F(">>>Buffer Solution Error Try Again<<<   "));
+              ecCalibrationFinish = 0;
           }
-            else{
-                Serial.println();
-                Serial.println(F(">>>Failed,Try Again<<<"));
-                Serial.println();
-                ecCalibrationFinish = 0;
-            }
+          KValueTemp = RES2*ECREF*compECsolution/1000.0/this->_voltage;       //calibrate the k value
+          if((KValueTemp>0.5) && (KValueTemp<1.5)){
+              Serial.println();
+              Serial.print(F(">>>Successful,K:"));
+              Serial.print(KValueTemp);
+              Serial.println(F(", Send EXITEC to Save and Exit<<<"));
+              if((this->_rawEC>0.9)&&(this->_rawEC<1.9)){
+                  this->_kvalueLow =  KValueTemp;
+              }else if((this->_rawEC>9)&&(this->_rawEC<16.8)){
+                  this->_kvalueHigh =  KValueTemp;
+              }
+              ecCalibrationFinish = 1;
         }
-        break;
-        case 6:
-        if(enterCalibrationFlag){
-                Serial.println();
-                if(ecCalibrationFinish){   
-                    if((this->_rawEC>0.9)&&(this->_rawEC<1.9)){
-                        EEPROM_write(KVALUEADDR, this->_kvalueLow);
-                    }else if((this->_rawEC>9)&&(this->_rawEC<16.8)){
-                        EEPROM_write(KVALUEADDR+4, this->_kvalueHigh);
-                    }
-                    Serial.print(F(">>>Calibration Successful"));
-                }else{
-                    Serial.print(F(">>>Calibration Failed"));
-                }
-                Serial.println(F(",Exit EC Calibration Mode<<<"));
-                Serial.println();
-                ecCalibrationFinish  = 0;
-                enterCalibrationFlag = 0;
-        }
-        break;
-    }
+          else{
+              Serial.println();
+              Serial.println(F(">>>Failed,Try Again<<<"));
+              Serial.println();
+              ecCalibrationFinish = 0;
+          }
+      }
+      break;
+      case 6:
+      if(enterCalibrationFlag){
+              Serial.println();
+              if(ecCalibrationFinish){   
+                  if((this->_rawEC>0.9)&&(this->_rawEC<1.9)){
+                      EEPROM_write(KVALUEADDR, this->_kvalueLow);
+                  }else if((this->_rawEC>9)&&(this->_rawEC<16.8)){
+                      EEPROM_write(KVALUEADDR+4, this->_kvalueHigh);
+                  }
+                  Serial.print(F(">>>Calibration Successful"));
+              }else{
+                  Serial.print(F(">>>Calibration Failed"));
+              }
+              Serial.println(F(",Exit EC Calibration Mode<<<"));
+              Serial.println();
+              ecCalibrationFinish  = 0;
+              enterCalibrationFlag = 0;
+      }
+      break;
+  }
 } 
