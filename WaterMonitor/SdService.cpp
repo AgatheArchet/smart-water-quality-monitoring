@@ -39,7 +39,7 @@ const int CsPin = 4;
 
 #endif
 
-#define SDUPDATEDATATIME 30000
+#define SDUPDATEDATATIME 15000
 
 #include "SdService.h"
 #include <SPI.h>
@@ -108,9 +108,9 @@ void SdService::update()
 		dataString += String(rtc.day, 10);
 		dataString += "/";
 		dataString += String(rtc.hour, 10);
-		dataString += "/";
+		dataString += ":";
 		dataString += String(rtc.minute, 10);
-		dataString += "/";
+		dataString += ":";
 		dataString += String(rtc.second, 10);
 		dataString += ",";
 

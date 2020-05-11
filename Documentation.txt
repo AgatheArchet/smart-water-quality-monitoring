@@ -1,4 +1,4 @@
-Projetc:
+Project:
 
   KnowFlow : automatic water monitor:
   https://www.dfrobot.com/blog-733.html
@@ -18,6 +18,9 @@ Associated products :
   Gravity: Analog pH Sensor / Meter Pro Kit For Arduino:
   https://www.dfrobot.com/product-1110.html
 
+  Micro SD card module for Arduino:
+  https://www.dfrobot.com/product-875.html
+
 Wiki and Documentation:
 
   Arduino Bluno with Bluetooth 4.0 (BLE):
@@ -25,6 +28,7 @@ Wiki and Documentation:
 
   Analog EC Meter: 
   https://wiki.dfrobot.com/Analog_EC_Meter_SKU_DFR0300
+  https://github.com/DFRobot/DFRobot_EC
 
   pH meter:
   https://wiki.dfrobot.com/Gravity__Analog_pH_Sensor_Meter_Kit_V2_SKU_SEN0161-V2
@@ -33,4 +37,9 @@ Wiki and Documentation:
   RTC module:
   https://wiki.dfrobot.com/Gravity__I2C_SD2405_RTC_Module_SKU__DFR0469
   https://github.com/DFRobot/Gravity-I2C-SD2405-RTC-Module
+
+  Micro SD card module for Arduino:
+  https://wiki.dfrobot.com/MicroSD_card_module_for_Arduino__SKU_DFR0229_
+
+  
     

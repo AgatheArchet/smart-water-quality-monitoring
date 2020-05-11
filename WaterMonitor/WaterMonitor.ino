@@ -45,7 +45,7 @@
 #include "GravitySensorHub.h"
 #include "GravityRtc.h"
 #include "OneWire.h"
-// #include "SdService.h"
+#include "SdService.h"
 #include "Debug.h"
 #include <SoftwareSerial.h>
 
@@ -54,14 +54,14 @@ GravityRtc rtc;
 
 // sensor monitor
 GravitySensorHub sensorHub;
-//SdService sdService = SdService(sensorHub.sensors);
+SdService sdService = SdService(sensorHub.sensors);
 void setup() {
 	Serial.begin(9600);
 	rtc.setup();
   rtc.adjustRtc(F(__DATE__), F(__TIME__)); //Set time given by computer
   //rtc.adjustRtc(2020,1,31,4,12,46,0);  //Set time: (year,month,day,dayOfWeek,hour,minute,second), here : 1/31/2020, Wenesday, 12:46:00
 	sensorHub.setup();
-	//sdService.setup();
+	sdService.setup();
 }
 
 
@@ -81,12 +81,12 @@ int i =0;
 void loop() {
 	rtc.update();
 	sensorHub.update();
-	//sdService.update();
+	sdService.update();
  
   i++;  
   sensorHub.calibrate();
   
-  if(millis() - updateTime > 2000) // 2 seconds between each Serial.print()
+  if(millis() - updateTime > 1000) // 2 seconds between each Serial.print()
   {
     updateTime = millis();
     Serial.print(" tour : "); 
