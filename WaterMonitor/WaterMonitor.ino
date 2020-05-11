@@ -58,7 +58,7 @@ GravitySensorHub sensorHub;
 void setup() {
 	Serial.begin(9600);
 	//rtc.setup();
-  //rtc.adjustRtc(F(__DATE__), F(__TIME__)); //Set time given by 
+  //rtc.adjustRtc(F(__DATE__), F(__TIME__)); //Set time given by computer
   //rtc.adjustRtc(2020,1,31,4,12,46,0);  //Set time: (year,month,day,dayOfWeek,hour,minute,second), here : 1/31/2020, Wenesday, 12:46:00
 	sensorHub.setup();
 	//sdService.setup();
@@ -82,11 +82,12 @@ void loop() {
 	//rtc.update();
 	sensorHub.update();
 	//sdService.update();
- Serial.print(" tour : "); Serial.print(i);   
+ Serial.print(" tour : "); Serial.println(i);   
  Serial.print("   pH : "); Serial.print(sensorHub.getValueBySensorNumber(0));
  Serial.print("   EC : "); Serial.println(sensorHub.getValueBySensorNumber(3));
 
- //TO DO : add a propoer calibration for EC sensor OR think again how to calibrate...
+ sensorHub.calibrate();
+ 
   i++;
   /* Serial.print("   Date :  ");
   Serial.print(rtc.month);

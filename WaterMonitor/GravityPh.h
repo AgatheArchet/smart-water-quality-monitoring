@@ -70,6 +70,6 @@ class GravityPh:public ISensor
 
     // calibration by Serial command subfunctions 
     boolean cmdSerialDataAvailable();
-    void    phCalibration(byte mode); // calibration process, wirte key parameters to EEPROM
+    void    calibration(byte mode); // calibration process, wirte key parameters to EEPROM
     byte    cmdParse();
 };

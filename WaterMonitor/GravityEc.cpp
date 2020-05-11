@@ -78,7 +78,7 @@ void GravityEc::update()
 {
 	calculateAnalogAverage();
 	//calculateEc();
-  calibration();
+  //calibration();
 }
 
 
@@ -149,51 +149,8 @@ void GravityEc::calculateEc()
   
 }
 
-void GravityEc::calibration()
-{   
-    if(cmdSerialDataAvailable() > 0)
-    {
-        ecCalibration(cmdParse());  // if received Serial CMD from the serial monitor, enter into the calibration mode
-    }
-}
 
-boolean GravityEc::cmdSerialDataAvailable()
-{
-    char cmdReceivedChar;
-    static unsigned long cmdReceivedTimeOut = millis();
-    while (Serial.available()>0) 
-    {
-        if(millis() - cmdReceivedTimeOut > 500U){
-            this->_cmdReceivedBufferIndex = 0;
-            memset(this->_cmdReceivedBuffer,0,(ReceivedBufferLength));
-        }
-        cmdReceivedTimeOut = millis();
-        cmdReceivedChar = Serial.read();
-        if(cmdReceivedChar == '\n' || this->_cmdReceivedBufferIndex==ReceivedBufferLength-1){
-            this->_cmdReceivedBufferIndex = 0;
-            strupr(this->_cmdReceivedBuffer);
-            return true;
-        }else{
-            this->_cmdReceivedBuffer[this->_cmdReceivedBufferIndex] = cmdReceivedChar;
-            this->_cmdReceivedBufferIndex++;
-        }
-    }
-    return false;
-}
-
-byte GravityEc::cmdParse()
-{
-    byte modeIndex = 0;
-    if(strstr(this->_cmdReceivedBuffer, "ENTEREC")     != NULL)
-        modeIndex = 1;
-    else if(strstr(this->_cmdReceivedBuffer, "EXITEC") != NULL)
-        modeIndex = 3;
-    else if(strstr(this->_cmdReceivedBuffer, "CALEC")  != NULL)
-        modeIndex = 2;
-    return modeIndex;
-}
-
-void GravityEc::ecCalibration(byte mode)
+void GravityEc::calibration(byte mode)
 {
     char *receivedBufferPtr;
     static boolean ecCalibrationFinish  = 0;
@@ -206,7 +163,7 @@ void GravityEc::ecCalibration(byte mode)
             Serial.println(F(">>>Command Error<<<"));
         }
         break;
-        case 1:
+        case 4:
         enterCalibrationFlag = 1;
         ecCalibrationFinish  = 0;
         Serial.println();
@@ -214,7 +171,7 @@ void GravityEc::ecCalibration(byte mode)
         Serial.println(F(">>>Please put the probe into the 1413us/cm or 12.88ms/cm buffer solution<<<"));
         Serial.println();
         break;
-        case 2:
+        case 5:
         if(enterCalibrationFlag){
             if((this->_rawEC>0.9)&&(this->_rawEC<1.9)){                         //recognize 1.413us/cm buffer solution
                 compECsolution = 1.413*(1.0+0.0185*(this->_temperature-25.0));  //temperature compensation
@@ -245,7 +202,7 @@ void GravityEc::ecCalibration(byte mode)
             }
         }
         break;
-        case 3:
+        case 6:
         if(enterCalibrationFlag){
                 Serial.println();
                 if(ecCalibrationFinish){   

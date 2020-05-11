@@ -15,11 +15,12 @@
 * date    :  2017-04-06
 **********************************************************************/
 #pragma once
+#include "Arduino.h"
 class ISensor
 {
 public:
 	virtual void setup()		= 0;
 	virtual void update()		= 0;
 	virtual double getValue()	= 0;
-  //virtual void calibration() = 0;
+  virtual void calibration(byte option) = 0;
 };

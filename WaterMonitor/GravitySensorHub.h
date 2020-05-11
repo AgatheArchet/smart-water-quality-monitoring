@@ -17,6 +17,11 @@
 
 #pragma once
 #include "ISensor.h"
+#include "Arduino.h"
+
+#define ReceivedBufferLength 10  //length of the Serial CMD buffer
+
+
 /*
 sensors :
 0,ph
@@ -49,6 +54,17 @@ public:
 	// update all sensor values
 	void  update ();
 
-	// Get the sensor data
+	// get the sensor data
 	double getValueBySensorNumber(int num);
+
+  // check if user wants to calibaration
+  void calibrate();
+
+  private:
+  // calibration steps
+  char _cmdReceivedBuffer[ReceivedBufferLength];  //store the Serial CMD
+  byte _cmdReceivedBufferIndex;
+  
+  boolean cmdSerialDataAvailable();
+  byte cmdParse();
 };

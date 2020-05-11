@@ -43,7 +43,7 @@ GravitySensorHub::GravitySensorHub()
  this->sensors[0] = new GravityPh();
 //this->sensors[1] = new GravityTemperature(5);
 //	this->sensors[2] = new SensorDo();
- this->sensors[3] = new GravityEc(this->sensors[1]);
+this->sensors[3] = new GravityEc(this->sensors[1]);
 //	this->sensors[4] = new GravityOrp();
 
 }
@@ -112,4 +112,70 @@ double GravitySensorHub::getValueBySensorNumber(int num)
 		return 0;
 	}
 	return this->sensors[num]->getValue();
+}
+
+void GravitySensorHub::calibrate()
+{   
+    if(cmdSerialDataAvailable() > 0)
+    {
+        byte option = cmdParse(); // if received Serial CMD from the serial monitor, enter into the calibration mode
+        Serial.print("  option :"); Serial.println(option);
+        if (option==0)
+           Serial.println(F(">>>Command Error<<<"));
+        else if (option >=1 && option<=3)
+            if  (this->sensors[0] == NULL)
+               Serial.println(F(">>>pH Sensor does not exit<<<"));
+            else
+                this->sensors[0]->calibration(option);
+        else if(option >=4 && option<=6)
+            if  (this->sensors[3] == NULL)
+               Serial.println(F(">>>EC Sensor does not exit<<<"));
+            else
+               this->sensors[3]->calibration(option);
+    }
+}
+
+boolean GravitySensorHub::cmdSerialDataAvailable()
+{
+    char cmdReceivedChar;
+    static unsigned long cmdReceivedTimeOut = millis();
+    while (Serial.available()>0) 
+    {
+        if(millis() - cmdReceivedTimeOut > 500U){
+            this->_cmdReceivedBufferIndex = 0;
+            memset(this->_cmdReceivedBuffer,0,(ReceivedBufferLength));
+        }
+        cmdReceivedTimeOut = millis();
+        cmdReceivedChar = Serial.read();
+        if(cmdReceivedChar == '\n' || this->_cmdReceivedBufferIndex==ReceivedBufferLength-1)
+        {
+            this->_cmdReceivedBufferIndex = 0;
+            strupr(this->_cmdReceivedBuffer);
+            return true;
+        }else{
+            this->_cmdReceivedBuffer[this->_cmdReceivedBufferIndex] = cmdReceivedChar;
+            this->_cmdReceivedBufferIndex++;
+        }
+    }
+    return false;
+}
+
+byte GravitySensorHub::cmdParse()
+{
+    byte modeIndex = 0;
+    // ph calibration
+    if(strstr(this->_cmdReceivedBuffer, "ENTERPH")      != NULL)
+        modeIndex = 1;
+    else if(strstr(this->_cmdReceivedBuffer, "EXITPH") != NULL)
+        modeIndex = 3;
+    else if(strstr(this->_cmdReceivedBuffer, "CALPH")  != NULL)
+        modeIndex = 2;
+    // ec calibration
+    else if(strstr(this->_cmdReceivedBuffer, "ENTEREC")     != NULL)
+        modeIndex = 4;
+    else if(strstr(this->_cmdReceivedBuffer, "EXITEC") != NULL)
+        modeIndex = 6;
+    else if(strstr(this->_cmdReceivedBuffer, "CALEC")  != NULL)
+        modeIndex = 5;
+    return modeIndex;
 }

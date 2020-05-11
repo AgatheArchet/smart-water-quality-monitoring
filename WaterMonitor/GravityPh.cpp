@@ -57,7 +57,7 @@ void GravityPh::update()
 {
     calculateAnalogAverage();
     calculatePh();
-    calibration();
+    //calibration();
 }
 
 
@@ -97,56 +97,7 @@ double GravityPh::getValue()
 	 return this->_pHValue;
 }
 
-void GravityPh::calibration()
-{
-    if(cmdSerialDataAvailable() > 0)
-    {
-        phCalibration(cmdParse());  // if received Serial CMD from the serial monitor, enter into the calibration mode
-    }
-}
-
-boolean GravityPh::cmdSerialDataAvailable()
-{
-    char cmdReceivedChar;
-    static unsigned long cmdReceivedTimeOut = millis();
-    while(Serial.available()>0){
-        if(millis() - cmdReceivedTimeOut > 500U)
-        {
-            this->_cmdReceivedBufferIndex = 0;
-            memset(this->_cmdReceivedBuffer,0,(ReceivedBufferLength));
-        }
-        cmdReceivedTimeOut = millis();
-        cmdReceivedChar = Serial.read();
-        if (cmdReceivedChar == '\n' || this->_cmdReceivedBufferIndex==ReceivedBufferLength-1)
-        {
-            this->_cmdReceivedBufferIndex = 0;
-            strupr(this->_cmdReceivedBuffer);
-            return true;
-        }else{
-            this->_cmdReceivedBuffer[this->_cmdReceivedBufferIndex] = cmdReceivedChar;
-            this->_cmdReceivedBufferIndex++;
-        }
-    }
-    return false;
-}
-
-byte GravityPh::cmdParse()
-{
-    byte modeIndex = 0;
-    if(strstr(this->_cmdReceivedBuffer, "ENTERPH")      != NULL)
-    {
-        modeIndex = 1;
-    }else if(strstr(this->_cmdReceivedBuffer, "EXITPH") != NULL)
-    {
-        modeIndex = 3;
-    }else if(strstr(this->_cmdReceivedBuffer, "CALPH")  != NULL)
-    {
-        modeIndex = 2;
-    }
-    return modeIndex;
-}
-
-void GravityPh::phCalibration(byte mode)
+void GravityPh::calibration(byte mode)
 {
     char *receivedBufferPtr;
     static boolean phCalibrationFinish  = 0;

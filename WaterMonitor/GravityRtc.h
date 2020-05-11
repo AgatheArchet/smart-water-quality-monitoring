@@ -23,6 +23,7 @@
 #include <Arduino.h>
 
 #define RTC_Address   0x32  //RTC_Address 
+#define byte uint8_t
 
 
 class GravityRtc

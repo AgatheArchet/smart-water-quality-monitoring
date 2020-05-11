@@ -86,8 +86,5 @@ private:
 	// Calculate the conductivity
 	void calculateEc();
 
- void calibration();
- boolean cmdSerialDataAvailable();
- byte cmdParse();
- void ecCalibration(byte mode);
+ void calibration(byte mode);
 };
