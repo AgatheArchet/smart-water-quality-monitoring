@@ -78,7 +78,7 @@ void GravityEc::setup()
 void GravityEc::update()
 {
 	calculateAnalogAverage();
-	//calculateEc();
+	calculateEc();
 }
 
 
@@ -122,30 +122,20 @@ void GravityEc::calculateAnalogAverage()
 //********************************************************************************************
 void GravityEc::calculateEc()
 {
-  this->_averageVoltage = this->_AnalogAverage;
-  double TempCoefficient = 1.0 + 0.0185*(this->_ecTemperature->getValue() - 25.0);    //temperature compensation formula: fFinalResult(25^C) = fFinalResult(current)/(1.0+0.0185*(fTP-25.0));
-  double CoefficientVolatge = (double)this->_averageVoltage / TempCoefficient;
-    if (CoefficientVolatge < 150) 
-    {
-     this->ECcurrent = 0;
-     return;
-    }
-    else if (CoefficientVolatge > 3300)
-    {
-     this->ECcurrent = 20;
-     return;
-    }
-    else
-    {
-     if (CoefficientVolatge <= 448)
-      this->ECcurrent = 6.84*CoefficientVolatge - 64.32;   //1ms/cm<EC<=3ms/cm
-     else if (CoefficientVolatge <= 1457)
-      this->ECcurrent = 6.98*CoefficientVolatge - 127;   //3ms/cm<EC<=10ms/cm
-     else
-      ECcurrent = 5.3*CoefficientVolatge + 2278;                           //10ms/cm<EC<20ms/cm
-     this->ECcurrent /= 1000;    //convert us/cm to ms/cm
-    } 
-  
+  float value = 0,valueTemp = 0;
+  this->_rawEC = 1000*this->_voltage/RES2/ECREF;
+  valueTemp = this->_rawEC * this->_kvalue;
+  //automatic shift process
+  //First Range:(0,2); Second Range:(2,20)
+  if(valueTemp > 2.5){
+      this->_kvalue = this->_kvalueHigh;
+  }else if(valueTemp < 2.0){
+      this->_kvalue = this->_kvalueLow;
+  }
+
+  value = this->_rawEC * this->_kvalue;             //calculate the EC value after automatic shift
+  value = value / (1.0+0.0185*(this->_temperature-25.0));  //temperature compensation
+  this->ECcurrent = value;                           //store the EC value for Serial CMD calibration
 }
 
 

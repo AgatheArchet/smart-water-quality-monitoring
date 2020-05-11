@@ -86,7 +86,7 @@ void loop() {
   i++;  
   sensorHub.calibrate();
   
-  if(millis() - updateTime > 2000)
+  if(millis() - updateTime > 2000) // 2 seconds between each Serial.print()
   {
     updateTime = millis();
     Serial.print(" tour : "); 
