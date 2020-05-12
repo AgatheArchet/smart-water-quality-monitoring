@@ -68,6 +68,12 @@ void GravityEc::setup()
     EEPROM_write(KVALUEADDR+4, this->_kvalueHigh);
   }
   this->_kvalue =  this->_kvalueLow;                // set default K value: K = kvalueLow 
+  
+  Serial.print("EC Saved values with previous calibration : ");
+  Serial.print(" kvalueLow : ");
+  Serial.print(this->_kvalueLow);
+  Serial.print(" kvalueHigh : ");
+  Serial.println(this->_kvalueHigh);
 }
 
 
@@ -103,7 +109,6 @@ void GravityEc::calculateAnalogAverage()
 	{
 		AnalogSampleTime = millis();
 		_readings[ecArrayIndex++] = analogRead(ecSensorPin)/1024.0*5000;
-    //Serial.print("value :"); Serial.print(_readings[ecArrayIndex]);
 		if (ecArrayIndex == _numReadings)
 		{
 			ecArrayIndex = 0;
@@ -123,6 +128,7 @@ void GravityEc::calculateAnalogAverage()
 void GravityEc::calculateEc()
 {
   float value = 0,valueTemp = 0;
+  this->_voltage = this->_AnalogAverage;
   this->_rawEC = 1000*this->_voltage/RES2/ECREF;
   valueTemp = this->_rawEC * this->_kvalue;
   //automatic shift process

@@ -19,7 +19,7 @@
 #include "GravitySensorHub.h"
 #include "GravityPh.h"
 // #include "GravityOrp.h"
- #include "GravityEc.h"
+#include "GravityEc.h"
 //#include "GravityTemperature.h"
 // #include "SensorDo.h"
 
@@ -40,7 +40,7 @@ GravitySensorHub::GravitySensorHub()
 		this->sensors[i] = NULL;
 	}
 
- this->sensors[0] = new GravityPh();
+this->sensors[0] = new GravityPh();
 //this->sensors[1] = new GravityTemperature(5);
 //	this->sensors[2] = new SensorDo();
 this->sensors[3] = new GravityEc(this->sensors[1]);

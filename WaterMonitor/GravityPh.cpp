@@ -49,7 +49,13 @@ void GravityPh::setup()
   {
     this->_acidVoltage = 2032.44;  // new EEPROM, write typical voltage
     EEPROM_write(PHVALUEADDR+4, this->_acidVoltage);
-   }  
+   } 
+
+  Serial.print("pH Saved values with previous calibration : ");
+  Serial.print(" acidVoltage : ");
+  Serial.print(this->_acidVoltage);
+  Serial.print(" neutralVoltage : ");
+  Serial.println(this->_neutralVoltage);
 }
 
 

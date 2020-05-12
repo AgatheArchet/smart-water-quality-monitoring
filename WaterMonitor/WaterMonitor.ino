@@ -79,24 +79,26 @@ void setup() {
 unsigned long updateTime = 0;
 int i =0;
 void loop() {
-	rtc.update();
+	//rtc.update();
 	sensorHub.update();
-	sdService.update();
+	//sdService.update();
  
-  i++;  
+ 
   sensorHub.calibrate();
   
   if(millis() - updateTime > 1000) // 2 seconds between each Serial.print()
   {
+     i++;  
     updateTime = millis();
     Serial.print(" tour : "); 
     Serial.print(i); 
-    
-    Serial.print("   pH : "); 
-    Serial.print(sensorHub.getValueBySensorNumber(0));
+   
     Serial.print("   EC : "); 
     Serial.print(sensorHub.getValueBySensorNumber(3)); 
-    Serial.print(" ms/cm");
+    Serial.print(" mS/cm");
+
+    Serial.print("   pH : "); 
+    Serial.println(sensorHub.getValueBySensorNumber(0)); /*
 
     Serial.print("   Date :  ");
     Serial.print(rtc.month);
@@ -111,7 +113,7 @@ void loop() {
     Serial.print(":");
     Serial.print(rtc.minute);
     Serial.print(":"); 
-    Serial.println(rtc.second); 
+    Serial.println(rtc.second); */
   }
   
 }
@@ -149,7 +151,7 @@ void loop() {
 //Serial.println(sensorHub.getValueBySensorNumber(3));
 
 
-// ************************************************************ time ********************** **********
+// ********************************** time *********************************
 //Serial.print("   Year = ");//year
 //Serial.print(rtc.year);
 //Serial.print("   Month = ");//month
@@ -164,3 +166,22 @@ void loop() {
 //Serial.print(rtc.minute);
 //Serial.print("   Second = ");//second
 //Serial.println(rtc.second);
+
+// *******************************calibration *********************************
+
+//Serial.print("   pH : "); 
+//Serial.print(sensorHub.getValueBySensorNumber(0));
+//Serial.print("  raw voltage : "); 
+//double value = analogRead(A2);
+//Serial.print(value);
+//Serial.print("  volatge  :  ");
+//Serial.println(value/1024.0*5000);
+
+//Serial.print("   EC : "); 
+//Serial.print(sensorHub.getValueBySensorNumber(3)); 
+//Serial.print(" mS/cm");
+//Serial.print("  raw voltage : "); 
+//double value = analogRead(A1);
+//Serial.print(value);
+//Serial.print("  volatge  :  ");
+//Serial.println(value/1024.0*5000);
