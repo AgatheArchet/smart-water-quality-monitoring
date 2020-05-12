@@ -39,7 +39,7 @@ const int CsPin = 4;
 
 #endif
 
-#define SDUPDATEDATATIME 15000
+#define SDUPDATEDATATIME 2000 //ms
 
 #include "SdService.h"
 #include <SPI.h>
@@ -83,7 +83,7 @@ void SdService::setup()
 	dataFile = SD.open("sensor.csv", FILE_WRITE);
 	if (dataFile && dataFile.position() == 0) {
 		//dataFile.println(F("Year,Month,Day,Hour,Minues,Second,pH,temp(C),DO(mg/l),ec(s/m),orp(mv)"));
-		dataFile.println(F("date,pH,temp(C),DO(mg/l),ec(s/m),orp(mv)"));
+		dataFile.println(F("date,hour,pH,ec(mS/cm)")); //dataFile.println(F("date,pH,temp(C),DO(mg/l),ec(s/m),orp(mv)"));
 		dataFile.close();
 	}
 
@@ -106,7 +106,7 @@ void SdService::update()
 		dataString += String(rtc.month, 10);
 		dataString += "/";
 		dataString += String(rtc.day, 10);
-		dataString += "/";
+		dataString += ";";
 		dataString += String(rtc.hour, 10);
 		dataString += ":";
 		dataString += String(rtc.minute, 10);
@@ -131,21 +131,21 @@ void SdService::update()
 		}
 		else
 			connectString(0);
-
+    
 		// temperature
-		if (this->gravitySensor[1] != NULL) {
-			connectString(this->gravitySensor[1]->getValue());
-		}
-		else
-			connectString(0);
-
+	//if (this->gravitySensor[1] != NULL) {
+	//	connectString(this->gravitySensor[1]->getValue());
+  //	}
+	//else
+	//  connectString(0);
+    
 		//DO
-		if (this->gravitySensor[2] != NULL) {
-			connectString(this->gravitySensor[2]->getValue());
-		}
-		else
-			connectString(0);
-
+	//if (this->gravitySensor[2] != NULL) {
+	//	connectString(this->gravitySensor[2]->getValue());
+	//}
+	//else
+	// connectString(0);
+    
 		//EC
 		if (this->gravitySensor[3] != NULL) {
 			connectString(this->gravitySensor[3]->getValue());
@@ -154,11 +154,11 @@ void SdService::update()
 			connectString(0);
 
 		//Orp
-		if (this->gravitySensor[4] != NULL) {
-			connectString(this->gravitySensor[4]->getValue());
-		}
-		else
-			connectString(0);
+	//if (this->gravitySensor[4] != NULL) {
+	//	connectString(this->gravitySensor[4]->getValue());
+	//}
+	//else
+	//	connectString(0);
 
 		// write SD card
 		dataFile = SD.open("sensor.csv", FILE_WRITE);

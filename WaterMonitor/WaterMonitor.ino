@@ -62,7 +62,8 @@ void setup() {
   //rtc.adjustRtc(2020,1,31,4,12,46,0);  //Set time: (year,month,day,dayOfWeek,hour,minute,second), here : 1/31/2020, Wenesday, 12:46:00
 	sensorHub.setup();
 	sdService.setup();
-}
+  Serial.println(" ");
+  }
 
 
 //********************************************************************************************
@@ -79,9 +80,9 @@ void setup() {
 unsigned long updateTime = 0;
 int i =0;
 void loop() {
-	//rtc.update();
+  rtc.update();
 	sensorHub.update();
-	//sdService.update();
+	sdService.update();
  
  
   sensorHub.calibrate();
@@ -90,15 +91,7 @@ void loop() {
   {
      i++;  
     updateTime = millis();
-    Serial.print(" tour : "); 
     Serial.print(i); 
-   
-    Serial.print("   EC : "); 
-    Serial.print(sensorHub.getValueBySensorNumber(3)); 
-    Serial.print(" mS/cm");
-
-    Serial.print("   pH : "); 
-    Serial.println(sensorHub.getValueBySensorNumber(0)); /*
 
     Serial.print("   Date :  ");
     Serial.print(rtc.month);
@@ -113,7 +106,14 @@ void loop() {
     Serial.print(":");
     Serial.print(rtc.minute);
     Serial.print(":"); 
-    Serial.println(rtc.second); */
+    Serial.print(rtc.second); 
+   
+    Serial.print("   EC : "); 
+    Serial.print(sensorHub.getValueBySensorNumber(3)); 
+    Serial.print(" mS/cm");
+
+    Serial.print("   pH : "); 
+    Serial.println(sensorHub.getValueBySensorNumber(0)); 
   }
   
 }

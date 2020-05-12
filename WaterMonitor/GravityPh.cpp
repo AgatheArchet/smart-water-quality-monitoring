@@ -51,10 +51,10 @@ void GravityPh::setup()
     EEPROM_write(PHVALUEADDR+4, this->_acidVoltage);
    } 
 
-  Serial.print("pH Saved values with previous calibration : ");
+  Serial.print("* pH Saved values with previous calibration : ");
   Serial.print(" acidVoltage : ");
   Serial.print(this->_acidVoltage);
-  Serial.print(" neutralVoltage : ");
+  Serial.print("   neutralVoltage : ");
   Serial.println(this->_neutralVoltage);
 }
 

@@ -69,10 +69,10 @@ void GravityEc::setup()
   }
   this->_kvalue =  this->_kvalueLow;                // set default K value: K = kvalueLow 
   
-  Serial.print("EC Saved values with previous calibration : ");
-  Serial.print(" kvalueLow : ");
+  Serial.print("* EC Saved values with previous calibration : ");
+  Serial.print(" kvalueLow   : ");
   Serial.print(this->_kvalueLow);
-  Serial.print(" kvalueHigh : ");
+  Serial.print("      kvalueHigh     : ");
   Serial.println(this->_kvalueHigh);
 }
 
