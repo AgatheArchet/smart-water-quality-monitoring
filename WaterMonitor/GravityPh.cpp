@@ -28,12 +28,14 @@
 #define PHVALUEADDR 0x00    //the start address of the pH calibration parameters stored in the EEPROM
 
 
-GravityPh::GravityPh():phSensorPin(A2), samplingInterval(25),_pHValue(0),_averageVoltage(0),
-_voltage(1500), _sumVoltage(0),_acidVoltage(2032.44), _neutralVoltage(1500.0), _temperature(25.0)
+GravityPh::GravityPh():phSensorPin(A2), samplingInterval(25),_pHValue(0),_averageVoltage(0),_voltage(1500), _sumVoltage(0),_acidVoltage(2032.44), _neutralVoltage(1500.0), _temperature(25.0)
 {
 }
 
-
+//********************************************************************************************
+// Function Name: setup()
+// Function Declaration: Initializes the sensor and reads previously calibrate values
+//********************************************************************************************
 void GravityPh::setup()
 {
   pinMode(phSensorPin, INPUT);
@@ -51,21 +53,36 @@ void GravityPh::setup()
     EEPROM_write(PHVALUEADDR+4, this->_acidVoltage);
    } 
 
-  Serial.print("* pH Saved values with previous calibration : ");
+  Serial.print("* pH saved values with previous calibration : ");
   Serial.print(" acidVoltage : ");
   Serial.print(this->_acidVoltage);
   Serial.print("   neutralVoltage : ");
   Serial.println(this->_neutralVoltage);
 }
 
-
+//********************************************************************************************
+// function name: update ()
+// Function Description: Updates the sensor value
+//********************************************************************************************
 void GravityPh::update()
 {
   calculateAnalogAverage();
   calculatePh();
 }
 
+//********************************************************************************************
+// function name: getValue ()
+// Function Description: Returns the sensor data
+//********************************************************************************************
+double GravityPh::getValue()
+{
+  return this->_pHValue;
+}
 
+//********************************************************************************************
+// function name: calculateAnalogAverage ()
+// Function Description: Calculates the average voltage
+//********************************************************************************************
 void GravityPh::calculateAnalogAverage()
 {
   static unsigned long samplingTime = millis();
@@ -87,7 +104,10 @@ void GravityPh::calculateAnalogAverage()
   }
 }
 
-
+//********************************************************************************************
+// function name: calculatePh()
+// Function Description: Calculates the pH
+//********************************************************************************************
 void GravityPh::calculatePh()
 {
   this->_voltage = this->_averageVoltage;
@@ -96,12 +116,10 @@ void GravityPh::calculatePh()
   this->_pHValue = slope*(this->_voltage-1500.0)/3.0+intercept;  //y = k*x + b
 }
 
-
-double GravityPh::getValue()
-{
-	return this->_pHValue;
-}
-
+//********************************************************************************************
+// function name: calibration(byte mode)
+// Function Description: Determines _acidVoltage and _neutralVoltage to calibrate the probe
+//********************************************************************************************
 void GravityPh::calibration(byte mode)
 {
   char *receivedBufferPtr;

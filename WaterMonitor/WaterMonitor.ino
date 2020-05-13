@@ -55,16 +55,22 @@ GravityRtc rtc;
 // sensor monitor
 GravitySensorHub sensorHub;
 SdService sdService = SdService(sensorHub.sensors);
+
 void setup() {
 	Serial.begin(9600);
+
+ // clock time set-up
 	rtc.setup();
   rtc.adjustRtc(F(__DATE__), F(__TIME__)); //Set time given by computer
   //rtc.adjustRtc(2020,1,31,4,12,46,0);  //Set time: (year,month,day,dayOfWeek,hour,minute,second), here : 1/31/2020, Wenesday, 12:46:00
+	
+	// Sensors and record file initialization
 	sensorHub.setup();
 	sdService.setup();
+  sdService.clearPreviousData();
+ 
   Serial.println(" ");
   }
-
 
 //********************************************************************************************
 // function name: sensorHub.getValueBySensorNumber (0)
@@ -75,17 +81,26 @@ void setup() {
 // Parameters: 3 Conductivity
 // Parameters: 4 Redox potential
 // return value: returns a double type of data
+
+// Function Name: calibrate()
+// Function Declaration: Launches verification steps to enable any calibration (from a Serial command)
+// ENTERPH : enters pH calibration mode
+// CALPH : detects the buffer solution 4.0 or 7.0
+// EXITPH : exits calibration mode and saves the values ( /!\ will not be saved otherwise)
+// ENTEREC : enters EC calibration mode
+// CALEC : detects the buffer solution 1413 µS/cm or 12.88 mS/cm
+// EXITEC : exits calibration mode and saves the values ( /!\ will not be saved otherwise)
 //********************************************************************************************
 
 unsigned long updateTime = 0;
 int i =0;
+
 void loop() {
+  // updates all modules
   rtc.update();
 	sensorHub.update();
 	sdService.update();
- 
- 
-  sensorHub.calibrate();
+  sensorHub.calibrate(); // if calibration required at any time
   
   if(millis() - updateTime > 1000) // 2 seconds between each Serial.print()
   {
@@ -93,20 +108,13 @@ void loop() {
     updateTime = millis();
     Serial.print(i); 
 
-    Serial.print("   Date :  ");
-    Serial.print(rtc.month);
-    Serial.print("/");
-    Serial.print(rtc.day);
-    Serial.print("/");
-    Serial.print(rtc.year);
-    Serial.print(",");
-    Serial.print(rtc.week);
-    Serial.print(",");
-    Serial.print(rtc.hour);
-    Serial.print(":");
-    Serial.print(rtc.minute);
-    Serial.print(":"); 
-    Serial.print(rtc.second); 
+    Serial.print("   Date :  "); Serial.print(rtc.month);  
+    Serial.print("/"); Serial.print(rtc.day); 
+    Serial.print("/"); Serial.print(rtc.year); 
+    Serial.print(","); Serial.print(rtc.week); 
+    Serial.print(","); Serial.print(rtc.hour); 
+    Serial.print(":"); Serial.print(rtc.minute); 
+    Serial.print(":"); Serial.print(rtc.second); 
    
     Serial.print("   EC : "); 
     Serial.print(sensorHub.getValueBySensorNumber(3)); 
@@ -126,15 +134,12 @@ void loop() {
 		Serial.print(sensorHub.getValueBySensorNumber(0));
 		Serial.print(F("  Temp= "));
 		Serial.print(sensorHub.getValueBySensorNumber(1));
-		Serial.print(F("  Do= "));
-		Serial.print(sensorHub.getValueBySensorNumber(2));
+
 		Serial.print(F("  Ec= "));
 		Serial.print(sensorHub.getValueBySensorNumber(3));
 		Serial.print(F("  Orp= "));
 		Serial.println(sensorHub.getValueBySensorNumber(4)); 
 	}*/
-
-
 
 
 //* ***************************** Print the relevant debugging information ************** ************ * /
@@ -145,10 +150,13 @@ void loop() {
 //Serial.print(sensorHub.getValueBySensorNumber(0));
 //Serial.print("  Temp= ");
 //Serial.print(sensorHub.getValueBySensorNumber(1));
+//Serial.print("  EC= ");
+//Serial.print(F("  Do= "));
+//Serial.print(sensorHub.getValueBySensorNumber(2));
+//Serial.println(sensorHub.getValueBySensorNumber(3));
 //Serial.print("  Orp= ");
 //Serial.println(sensorHub.getValueBySensorNumber(4));
-//Serial.print("  EC= ");
-//Serial.println(sensorHub.getValueBySensorNumber(3));
+
 
 
 // ********************************** time *********************************
@@ -167,7 +175,7 @@ void loop() {
 //Serial.print("   Second = ");//second
 //Serial.println(rtc.second);
 
-// *******************************calibration *********************************
+// *************************** calibration debugging *****************************
 
 //Serial.print("   pH : "); 
 //Serial.print(sensorHub.getValueBySensorNumber(0));

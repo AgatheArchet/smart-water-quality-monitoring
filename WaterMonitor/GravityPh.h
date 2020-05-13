@@ -38,14 +38,14 @@ class GravityPh:public ISensor
     // main properties
     double _pHValue, _temperature;
   
-    // data treatment
+    // average filter
   	static const int _arrayLength = 5;
   	int _pHArray [_arrayLength];    //stores the average value of the sensor return data
     double _voltage, _averageVoltage, _sumVoltage; //stored for average measurement
   
     // data calibration
     double _acidVoltage, _neutralVoltage; //stored for pH probe calibration
-    char _cmdReceivedBuffer[ReceivedBufferLength];  //stores the Serial CMD for calibration
+    char _cmdReceivedBuffer[ReceivedBufferLength];  //stores the Serial command for calibration
     byte  _cmdReceivedBufferIndex;
   
   
@@ -66,10 +66,7 @@ class GravityPh:public ISensor
     // update subfunctions
     void calculateAnalogAverage();
     void calculatePh();
-    void  calibration();
 
-    // calibration by Serial command subfunctions 
-    boolean cmdSerialDataAvailable();
+    // calibration with buffer solutions
     void    calibration(byte mode); // calibration process, wirte key parameters to EEPROM
-    byte    cmdParse();
 };

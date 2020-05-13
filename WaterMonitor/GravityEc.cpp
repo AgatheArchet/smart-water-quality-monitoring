@@ -31,9 +31,7 @@
 #define ECREF 200.0
 
 
-GravityEc::GravityEc(ISensor* temp) :ecSensorPin(A1), ECcurrent(0), _AnalogAverage(0),
-_AnalogValueTotal(0), _averageVoltage(0), AnalogSampleTime(0), printTime(0),_sumVoltage(0),
-AnalogSampleInterval(25),printInterval(700), 
+GravityEc::GravityEc(ISensor* temp) :ecSensorPin(A1), ECcurrent(0), _AnalogAverage(0), AnalogSampleTime(0), _sumVoltage(0),AnalogSampleInterval(25),
 _kvalue(1.0),_kvalueLow(1.0), _kvalueHigh(1.0), _voltage(0.0), _temperature(25.0)
 {
 	this->_ecTemperature = temp;
@@ -46,8 +44,8 @@ GravityEc::~GravityEc()
 
 
 //********************************************************************************************
-// function name: setup ()
-// Function Description: Initializes the sensor
+// Function Name: setup()
+// Function Declaration: Initializes the sensor and reads previously calibrate values
 //********************************************************************************************
 void GravityEc::setup()
 {
@@ -69,7 +67,7 @@ void GravityEc::setup()
   }
   this->_kvalue =  this->_kvalueLow;                // set default K value: K = kvalueLow 
   
-  Serial.print("* EC Saved values with previous calibration : ");
+  Serial.print("* EC saved values with previous calibration : ");
   Serial.print(" kvalueLow   : ");
   Serial.print(this->_kvalueLow);
   Serial.print("      kvalueHigh     : ");
@@ -79,7 +77,7 @@ void GravityEc::setup()
 
 //********************************************************************************************
 // function name: update ()
-// Function Description: Update the sensor value
+// Function Description: Updates the sensor value
 //********************************************************************************************
 void GravityEc::update()
 {
@@ -122,8 +120,8 @@ void GravityEc::calculateAnalogAverage()
 
 
 //********************************************************************************************
-// function name: calculateAnalogAverage ()
-// Function Description: Calculate the conductivity
+// function name: calculateEc()
+// Function Description: Calculates the conductivity
 //********************************************************************************************
 void GravityEc::calculateEc()
 {
@@ -144,7 +142,10 @@ void GravityEc::calculateEc()
   this->ECcurrent = value;                           //store the EC value for Serial CMD calibration
 }
 
-
+//********************************************************************************************
+// function name: calibration(byte mode)
+// Function Description: Determines _kvalueLow and _kvalueHigh to calibrate the probe
+//********************************************************************************************
 void GravityEc::calibration(byte mode)
 {
   char *receivedBufferPtr;

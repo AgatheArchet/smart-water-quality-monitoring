@@ -89,6 +89,16 @@ void SdService::setup()
 
 }
 
+void SdService::clearPreviousData()
+{
+  dataFile = SD.open("sensor.csv", O_WRITE | O_TRUNC);
+  if (dataFile)
+  {
+      Debug::println(F("File has been cleared"));
+      dataFile.println(F("date,hour,pH,ec(mS/cm)")); //dataFile.println(F("date,pH,temp(C),DO(mg/l),ec(s/m),orp(mv)"));
+      dataFile.close();
+  }
+}
 
 //********************************************************************************************
 // function name: update ()

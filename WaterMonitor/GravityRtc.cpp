@@ -44,6 +44,11 @@ void GravityRtc::update()
 	processRtc();	
 }
 
+//********************************************************************************************
+// Function Name: adjustRtc(const __FlashStringHelper* date, const __FlashStringHelper* time)
+// Function Declaration: Initializing RTC Clock accodingly to intern time
+//rtc.adjustRtc(F(__DATE__), F(__TIME__)); // set the RTC clock with computer time
+//********************************************************************************************
 void GravityRtc::adjustRtc(const __FlashStringHelper* date, const __FlashStringHelper* time)
 {
 	char buff[11];

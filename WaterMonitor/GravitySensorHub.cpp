@@ -105,6 +105,7 @@ void GravitySensorHub::update()
 // Parameters: 4 Redox potential sensor
 // Return Value: Returns the acquired sensor data
 //********************************************************************************************
+
 double GravitySensorHub::getValueBySensorNumber(int num)
 {
 	if (num >= SensorCount)
@@ -112,8 +113,18 @@ double GravitySensorHub::getValueBySensorNumber(int num)
 		return 0;
 	}
 	return this->sensors[num]->getValue();
-}
+} 
 
+//********************************************************************************************
+// Function Name: calibrate()
+// Function Declaration: Launches verification steps to enable any calibration (from a Serial command)
+// ENTERPH : enters pH calibration mode
+// CALPH : detects the buffer solution 4.0 or 7.0
+// EXITPH : exits calibration mode and saves the values ( /!\ will not be saved otherwise)
+// ENTEREC : enters EC calibration mode
+// CALEC : detects the buffer solution 1413 µS/cm or 12.88 mS/cm
+// EXITEC : exits calibration mode and saves the values ( /!\ will not be saved otherwise)
+//********************************************************************************************
 void GravitySensorHub::calibrate()
 {   
     if(cmdSerialDataAvailable() > 0)
@@ -135,6 +146,10 @@ void GravitySensorHub::calibrate()
     }
 }
 
+//********************************************************************************************
+// Function Name: cmdSerialDataAvailable()
+// Function Declaration: Verifies and stores Serial commands
+//********************************************************************************************
 boolean GravitySensorHub::cmdSerialDataAvailable()
 {
     char cmdReceivedChar;
@@ -160,6 +175,10 @@ boolean GravitySensorHub::cmdSerialDataAvailable()
     return false;
 }
 
+//********************************************************************************************
+// Function Name: cmdParse()
+// Function Declaration: Compares Serial command with calibration options
+//********************************************************************************************
 byte GravitySensorHub::cmdParse()
 {
     byte modeIndex = 0;

@@ -46,6 +46,9 @@ public:
 	// Update write SD card data
 	void  update ();
 
+  // To get an empty file
+  void clearPreviousData();
+
 private:
 	// points to the pointer to the array of sensors
 	ISensor** gravitySensor;
@@ -61,4 +64,3 @@ private:
 	void connectString(double value);
 
 };
-

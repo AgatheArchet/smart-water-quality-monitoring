@@ -37,9 +37,7 @@ public:
 
  // sample and print interval
   unsigned long AnalogSampleTime;
-  unsigned long printTime;
   unsigned long AnalogSampleInterval;
-  unsigned long printInterval ;
 
 
 public:
@@ -59,32 +57,24 @@ private:
 	// point to the temperature sensor pointer
 	ISensor* _ecTemperature = NULL;
 
-
+  // average filter
 	static const int _numReadings = 5;
 	unsigned int _readings[_numReadings] = { 0 };      // the readings from the analog input
 	double _sumVoltage;
-	unsigned long _AnalogValueTotal;      // the running total
 	unsigned int _AnalogAverage;
-	unsigned int _averageVoltage;
 
 
-
-  float  _kvalue;
-  float  _kvalueLow;
-  float  _kvalueHigh;
-  float  _voltage;
-  float  _temperature;
-  float  _rawEC;
-
+  // calibration values
+  float  _kvalue, _kvalueLow, _kvalueHigh; //stored for EC probe calibration
+  float  _voltage, _temperature,_rawEC;
   char   _cmdReceivedBuffer[ReceivedBufferLength];  //store the Serial CMD
   byte   _cmdReceivedBufferIndex;
 
 private:
-	// Calculate the average
+	// update subfunctions
   void calculateAnalogAverage();
-
-	// Calculate the conductivity
 	void calculateEc();
 
- void calibration(byte mode);
+  // calibration with buffer solutions
+  void calibration(byte mode);
 };
