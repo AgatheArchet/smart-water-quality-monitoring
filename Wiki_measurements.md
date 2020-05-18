@@ -28,21 +28,21 @@ As a first step, the project focuses on two sensors: a pH and EC probes. An anal
 
 ### Connecting all elements :
 0. Add the IO expansion shield on the Arduino Bluno.  
-![image info](./pic/arduino_preparation_0_bluno_and_shield.jpg)
-![image info](./pic/arduino_preparation_1_shield_on_bluno.jpg)
+![image info](./pic/arduino_preparation_0_bluno_and_shield.jpg =650x450)
+![image info](./pic/arduino_preparation_1_shield_on_bluno.jpg =650x450)
 
 1. Connect the pH module: plug the white end of the analog ("blue-red-black") cable to the pH data transfer board, and its black end to port A2 of the Bluno. The pH circuit board is now connected.  
-![image info](./pic/arduino_preparation_2_ph_sensor.jpg)
+![image info](./pic/arduino_preparation_2_ph_sensor.jpg =650x450)
 2. Connect the EC module: plug the white end of the analog ("blue-red-black") cable to the analog signal isolator module (MCU side), and its black end to port A1.  
 3. Plug one end of the "orange-red-black" cable to the EC circuit board, and the other end to the IN terminal of the isolation module (sensor side). The EC circuit board is now connected.  
-![image info](./pic/arduino_preparation_3_ec_sensor.jpg)
+![image info](./pic/arduino_preparation_3_ec_sensor.jpg =650x450)
 4. Connect the Real-Time Clock (RTC) module: Plug the white end of the I2C 4-pins ("blue-green-red-black") cable to RTC, and its black end to the blue I2C interface.  
-![image info](./pic/arduino_preparation_4_rtc_module.jpg)
+![image info](./pic/arduino_preparation_4_rtc_module.jpg =650x450)
 5. Connect the micro-SD card module to the blue SD card slot. When inserted, the SD card should be pointing outwards the Arduino.  
-![image info](./pic/arduino_preparation_5_sdcard_module.jpg)
-![image info](./pic/arduino_preparation_5_sdcard_module_on.jpg)
+![image info](./pic/arduino_preparation_5_sdcard_module.jpg =650x450)
+![image info](./pic/arduino_preparation_5_sdcard_module_on.jpg =650x450)
 6. All sensors are connected.
-![image info](./pic/arduino_preparation_6_final.jpg)
+![image info](./pic/arduino_preparation_6_final.jpg =650x450)
 
 > The probes here are not directly connected to preserve them when they are not used. The manufacturer advises to not plug the probes to their circuit boards for too long when the Arduino board is not powered. The code still works without connecting the probes.
 
