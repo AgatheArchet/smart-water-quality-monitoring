@@ -1,6 +1,6 @@
 
-1. Prepare the Arduino Bluno
-----------------------------
+##1. Prepare the Arduino Bluno
+
 
 
 ###Material needed :
@@ -27,8 +27,8 @@ As a first step, the project focuses on two sensors : a pH and EC probes. An ana
 
 > The probes here are not directly connected to preserve them when they are not used. The manufacturer advises to not plug the probes to their circuit boards for too long when the arduino is not powered. The code still work without connecting the probes.
 
-2. Upload the code through Arduino IDE
---------------------------------------
+##2. Upload the code through Arduino IDE
+
 
 ###Material needed :
 * Arduino IDE on your computer
@@ -45,8 +45,7 @@ As a first step, the project focuses on two sensors : a pH and EC probes. An ana
 5. Finally, open the Serial Monitor (icon in the upper right corner), set the baud rate to 9600 and "BOTH NL & CR" option. It is recommanded to check *Autoscroll* box for a better readability.  
 6. The measures and the current date should appeared, they are directly saved on sd card every 2 secs.  
 
-3. Calibrating the probes
--------------------------
+##3. Calibrating the probes
 
 According to the manufacturer, the probes can reasonably be calibrated every month. When the Arduino Bluno board is powered and the Serial Monitor opened, the measurements take into accounts previous calibrated values by default. These values are indicated in first lines printed to Serial Monitor. Calibration can be made made at any time, one probe at a time, as long as the code is working on the Arduino board and Serial Monitor is opened. As a precaution, connect the Arduino first and then connect the probes to their associated circuit boards. When finished, disconnect the probes first and then disconnect the Arduino board.
 
@@ -62,8 +61,7 @@ According to the manufacturer, the probes can reasonably be calibrated every mon
 
 > Note : if only one buffer solution has been used, or if EXIT-- command have not been sent, calibration will fail.  
 
-4. Precaution with the probes
------------------------------
+##4. Precaution with the probes
 
 * As a precaution, connect the Arduino first and then connect the probes to their associated circuit boards. When finished, disconnect the probes first and then disconnect the Arduino board.  
 * Preferably connect the probes only when needed (measurements or calibration) to extend their lifetime.  
