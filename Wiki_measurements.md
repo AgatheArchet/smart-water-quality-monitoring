@@ -1,8 +1,13 @@
+# Wiki measurements on Arduino Bluno
+
+The Arduino Bluno board must meet two objectives : obtaining and processing datas providing by the differents modules, and sharing these datas with a Raspberry Pi via Bluetooth Low Energy (BLE). The first part here describes how to achieve the first objective.
+
+#### Table of contents
+
 - [1. Prepare the Arduino Bluno](#1-prepare-the-arduino-bluno)
 - [2. Upload the code through Arduino IDE](#2-upload-the-code-through-arduino-ide)
 - [3. Calibrating the probes](#3-calibrating-the-probes)
 - [4. Precaution with the probes](#4-precaution-with-the-probes)
-
 
 
 ## 1. Prepare the Arduino Bluno
