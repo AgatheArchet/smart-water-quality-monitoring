@@ -1,8 +1,9 @@
-##### Table of Contents  
-[1. Prepare the Arduino Bluno](##1.%20Prepare%20thevArduino%20Bluno)  
-[2. Upload the code through Arduino IDE](##2.%20Upload%20the%20code%20through%20Arduino%20IDE)  
-[3. Calibrating the probes](##3.%20Calibrating%20the%20probes)
-[4. Precaution with the probes](##4.%20Precaution%20with%20the%20probes)
+- [1. Prepare the Arduino Bluno](#1-prepare-the-arduino-bluno)
+- [2. Upload the code through Arduino IDE](#2-upload-the-code-through-arduino-ide)
+- [3. Calibrating the probes](#3-calibrating-the-probes)
+- [4. Precaution with the probes](#4-precaution-with-the-probes)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
 
 ## 1. Prepare the Arduino Bluno
