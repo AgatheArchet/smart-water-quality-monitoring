@@ -3,7 +3,6 @@
 - [3. Calibrating the probes](#3-calibrating-the-probes)
 - [4. Precaution with the probes](#4-precaution-with-the-probes)
 
-<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
 
 ## 1. Prepare the Arduino Bluno
