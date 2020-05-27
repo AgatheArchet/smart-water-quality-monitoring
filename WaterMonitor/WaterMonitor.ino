@@ -49,6 +49,7 @@
 #include "Debug.h"
 #include <SoftwareSerial.h>
 
+
 // clock module
 GravityRtc rtc;
 
@@ -57,7 +58,7 @@ GravitySensorHub sensorHub;
 SdService sdService = SdService(sensorHub.sensors);
 
 void setup() {
-	Serial.begin(9600);
+	Serial.begin(115200);
 
  // clock time set-up
 	rtc.setup();
@@ -102,12 +103,39 @@ void loop() {
 	sdService.update();
   sensorHub.calibrate(); // if calibration required at any time
   
-  if(millis() - updateTime > 1000) // 2 seconds between each Serial.print()
+  if(millis() - updateTime > 2000) // 2 seconds between each Serial.print()
   {
-     i++;  
+ 
+     updateTime = millis();
+     Serial.print("M");Serial.print(rtc.month);
+     Serial.print("d");Serial.print(rtc.day);
+     Serial.print("y"); Serial.print(rtc.year);
+     Serial.print("h"); Serial.print(rtc.hour);
+     Serial.print("m");Serial.print(rtc.minute);
+     Serial.print("s"); Serial.print(rtc.second);
+     delay(500);
+     Serial.print("pH"); Serial.print(sensorHub.getValueBySensorNumber(0));
+     Serial.print("tp"); Serial.print("25.0");  //Serial.print(sensorHub.getValueBySensorNumber(1));
+     Serial.print("EC"); Serial.print(sensorHub.getValueBySensorNumber(3));
+     delay(500);
+     Serial.print("Do");Serial.print("0.00"); //Serial.print(sensorHub.getValueBySensorNumber(2));
+     Serial.print("Or"); Serial.print("0.00");//Serial.print(sensorHub.getValueBySensorNumber(4));
+     delay(500);
+  }
+  
+}
+
+
+
+//* ***************************** Print the relevant debugging information ************** ************ * /
+// Note: Arduino M0 need to replace Serial with SerialUSB when printing debugging information
+
+// ************************* Serial debugging ******************
+/*
+    i++;
     updateTime = millis();
     Serial.print(i); 
-
+    
     Serial.print("   Date :  "); Serial.print(rtc.month);  
     Serial.print("/"); Serial.print(rtc.day); 
     Serial.print("/"); Serial.print(rtc.year); 
@@ -115,81 +143,78 @@ void loop() {
     Serial.print(","); Serial.print(rtc.hour); 
     Serial.print(":"); Serial.print(rtc.minute); 
     Serial.print(":"); Serial.print(rtc.second); 
-   
+    
+    Serial.print(F(" pH: "));
+    Serial.print(sensorHub.getValueBySensorNumber(0));
+    Serial.print(F("  Temp: "));
+    Serial.print(sensorHub.getValueBySensorNumber(1));
+    Serial.print(F("  Do: "));
+    Serial.print(sensorHub.getValueBySensorNumber(2));
+    Serial.print(" mg/L");
+    Serial.print(F("  Ec: "));
+    Serial.print(sensorHub.getValueBySensorNumber(3));
+    Serial.print(" mS/cm");
+    Serial.print(F("  Orp: "));
+    Serial.print(sensorHub.getValueBySensorNumber(4)); 
+    Serial.println(" mV");
+*/
+
+// ********************************** time *********************************
+/*
+    Serial.print("   Year = ");//year
+    Serial.print(rtc.year);
+    Serial.print("   Month = ");//month
+    Serial.print(rtc.month);
+    Serial.print("   Day = ");//day
+    Serial.print(rtc.day);
+    Serial.print("   Week = ");//week
+    Serial.print(rtc.week);
+    Serial.print("   Hour = ");//hour
+    Serial.print(rtc.hour);
+    Serial.print("   Minute = ");//minute
+    Serial.print(rtc.minute);
+    Serial.print("   Second = ");//second
+    Serial.println(rtc.second);
+*/
+
+// *************************** calibration debugging *****************************
+/*
+    Serial.print("   pH : "); 
+    Serial.print(sensorHub.getValueBySensorNumber(0));
+    Serial.print("  raw voltage : "); 
+    double value = analogRead(A2);
+    Serial.print(value);
+    Serial.print("  volatge  :  ");
+    Serial.println(value/1024.0*5000);
+    
     Serial.print("   EC : "); 
     Serial.print(sensorHub.getValueBySensorNumber(3)); 
     Serial.print(" mS/cm");
+    Serial.print("  raw voltage : "); 
+    double value = analogRead(A1);
+    Serial.print(value);
+    Serial.print("  volatge  :  ");
+    Serial.println(value/1024.0*5000);
+*/
 
-    Serial.print("   pH : "); 
-    Serial.println(sensorHub.getValueBySensorNumber(0)); 
-  }
-  
-}
+// *************************** bluetooth sending debugging *****************************
+/* 
+    #define DEBUG true 
+    #define Serial if(DEBUG)Serial
 
-	// ************************* Serial debugging ******************
-	/*if(millis() - updateTime > 2000)
-	{/*
-		updateTime = millis();
-		Serial.print(F("ph= "));
-		Serial.print(sensorHub.getValueBySensorNumber(0));
-		Serial.print(F("  Temp= "));
-		Serial.print(sensorHub.getValueBySensorNumber(1));
-
-		Serial.print(F("  Ec= "));
-		Serial.print(sensorHub.getValueBySensorNumber(3));
-		Serial.print(F("  Orp= "));
-		Serial.println(sensorHub.getValueBySensorNumber(4)); 
-	}*/
-
-
-//* ***************************** Print the relevant debugging information ************** ************ * /
-// Note: Arduino M0 need to replace Serial with SerialUSB when printing debugging information
-
-// ************************* Serial debugging ******************
-//Serial.print("ph= ");
-//Serial.print(sensorHub.getValueBySensorNumber(0));
-//Serial.print("  Temp= ");
-//Serial.print(sensorHub.getValueBySensorNumber(1));
-//Serial.print("  EC= ");
-//Serial.print(F("  Do= "));
-//Serial.print(sensorHub.getValueBySensorNumber(2));
-//Serial.println(sensorHub.getValueBySensorNumber(3));
-//Serial.print("  Orp= ");
-//Serial.println(sensorHub.getValueBySensorNumber(4));
-
-
-
-// ********************************** time *********************************
-//Serial.print("   Year = ");//year
-//Serial.print(rtc.year);
-//Serial.print("   Month = ");//month
-//Serial.print(rtc.month);
-//Serial.print("   Day = ");//day
-//Serial.print(rtc.day);
-//Serial.print("   Week = ");//week
-//Serial.print(rtc.week);
-//Serial.print("   Hour = ");//hour
-//Serial.print(rtc.hour);
-//Serial.print("   Minute = ");//minute
-//Serial.print(rtc.minute);
-//Serial.print("   Second = ");//second
-//Serial.println(rtc.second);
-
-// *************************** calibration debugging *****************************
-
-//Serial.print("   pH : "); 
-//Serial.print(sensorHub.getValueBySensorNumber(0));
-//Serial.print("  raw voltage : "); 
-//double value = analogRead(A2);
-//Serial.print(value);
-//Serial.print("  volatge  :  ");
-//Serial.println(value/1024.0*5000);
-
-//Serial.print("   EC : "); 
-//Serial.print(sensorHub.getValueBySensorNumber(3)); 
-//Serial.print(" mS/cm");
-//Serial.print("  raw voltage : "); 
-//double value = analogRead(A1);
-//Serial.print(value);
-//Serial.print("  volatge  :  ");
-//Serial.println(value/1024.0*5000);
+     updateTime = millis();
+     Serial.print("M");Serial.print(rtc.month);
+     Serial.print("d");Serial.print(rtc.day);
+     Serial.print("y"); Serial.print(rtc.year);
+     Serial.print("h"); Serial.print(rtc.hour);
+     Serial.print("m");Serial.print(rtc.minute);
+     Serial.print("s"); Serial.print(rtc.second);
+     delay(500);
+     Serial.print("pH"); Serial.print(sensorHub.getValueBySensorNumber(0));
+     Serial.print("tp"); Serial.print("25.0");  //Serial.print(sensorHub.getValueBySensorNumber(1));
+     Serial.print("EC"); Serial.print(sensorHub.getValueBySensorNumber(3));
+     delay(500);
+     Serial.print("Do");Serial.print("0.00"); //Serial.print(sensorHub.getValueBySensorNumber(2));
+     Serial.print("Or"); Serial.print("0.00");//Serial.print(sensorHub.getValueBySensorNumber(4));
+     delay(500);
+ */
