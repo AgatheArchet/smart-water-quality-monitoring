@@ -7,7 +7,8 @@ Created on Thu May 28 14:44:05 2020
 """
 
 import binascii
-import time
+import signal
+import sys
 from bluepy.btle import Peripheral, UUID, DefaultDelegate
  
 # tutorial for bluetooth settings : https://learn.adafruit.com/install-bluez-on-the-raspberry-pi/installation
@@ -47,6 +48,11 @@ class SensorsDelegate(DefaultDelegate):
                         pass
             else:
                 pass
+            
+def signal_handler(sig, frame):
+    print('  You pressed Ctrl+C! Bluno disconnected')
+    bluno.disconnect()
+    sys.exit(0)
 
 def connectToBLE():
     # connection to the device
@@ -60,7 +66,10 @@ def connectToBLE():
 
 if __name__=='__main__':
     
+    signal.signal(signal.SIGINT, signal_handler)
+    print("Connecting to device...")
     bluno, ch = connectToBLE()
+    print("\n Device connected")
     try:
         while True:
             #ch.write(str.encode("ok"))
