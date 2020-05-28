@@ -7,7 +7,9 @@ The Arduino Bluno board must meet two objectives: obtaining and processing data 
 
 A guide is provided in **Wiki section > Measurements with Arduino Bluno**.
 
+## Part 2 : data sharing through BLE
 
+The measurements and time can be sent from Arduino Bluno through Bluetooth Low Energy, and received by a Raspberry Pi 3 B+ (or other models with a BLE integrated module). The first device plays the *peripheral* role, the second one plays the *central* role.
 
 
 
