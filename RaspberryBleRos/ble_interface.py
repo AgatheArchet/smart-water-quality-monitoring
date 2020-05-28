@@ -1,16 +1,29 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu May 28 14:44:05 2020
+
+@author: agathe
+"""
+
 import binascii
-import struct
 import time
 from bluepy.btle import Peripheral, UUID, DefaultDelegate
  
 # tutorial for bluetooth settings : https://learn.adafruit.com/install-bluez-on-the-raspberry-pi/installation
 
 class SensorsDelegate(DefaultDelegate):
+    """
+    Deleguate object from bluepy library to manage notifications from the ARduino Bluno through BLE.
+    """
     def __init__(self):
         DefaultDelegate.__init__(self)
         # ... initialise here
 
     def handleNotification(self, cHandle, data):
+        """
+        Sorts data transmitted by Arduino Bluno through BLE.
+        """
         if (cHandle==37):
             if (len(data)>6):
                 msg = data.decode()
@@ -35,18 +48,24 @@ class SensorsDelegate(DefaultDelegate):
             else:
                 pass
 
-# connection to the device
-bluno = Peripheral("C8:DF:84:24:27:F6", "public")
-bluno.setDelegate(SensorsDelegate())
+def connectToBLE():
+    # connection to the device
+    bluno = Peripheral("C8:DF:84:24:27:F6", "public")
+    bluno.setDelegate(SensorsDelegate())
+    
+    svc = bluno.getServiceByUUID("dfb0")
+    ch = svc.getCharacteristics("dfb1")[0]
+    return (bluno, ch)
+    
 
-svc = bluno.getServiceByUUID("dfb0")
-ch = svc.getCharacteristics("dfb1")[0]
-
-try:
-    while True:
-        ch.write(str.encode("ok"))
-        if bluno.waitForNotifications(1.0): # calls handleNotification()
-             continue
-        print("Waiting...")
-finally:
-    bluno.disconnect()
+if __name__=='__main__':
+    
+    bluno, ch = connectToBLE()
+    try:
+        while True:
+            #ch.write(str.encode("ok"))
+            if bluno.waitForNotifications(1.0): # calls handleNotification()
+                 continue
+            print("Waiting...")
+    finally:
+        bluno.disconnect()

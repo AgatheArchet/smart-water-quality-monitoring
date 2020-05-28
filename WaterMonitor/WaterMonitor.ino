@@ -103,7 +103,7 @@ void loop() {
 	sdService.update();
   sensorHub.calibrate(); // if calibration required at any time
   
-  if(millis() - updateTime > 2000) // 2 seconds between each Serial.print()
+  if(millis() - updateTime > 1500) // 2 seconds between each Serial.print()
   {
  
      updateTime = millis();
