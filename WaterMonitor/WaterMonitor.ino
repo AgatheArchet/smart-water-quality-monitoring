@@ -105,8 +105,8 @@ void loop() {
   
   if(millis() - updateTime > 1500) // 2 seconds between each Serial.print()
   {
- 
-     updateTime = millis();
+     // change the code in this part if needed
+     updateTime = millis(); 
      Serial.print("M");Serial.print(rtc.month);
      Serial.print("d");Serial.print(rtc.day);
      Serial.print("y"); Serial.print(rtc.year);
@@ -120,7 +120,7 @@ void loop() {
      delay(500);
      Serial.print("Do");Serial.print("0.00"); //Serial.print(sensorHub.getValueBySensorNumber(2));
      Serial.print("Or"); Serial.print("0.00");//Serial.print(sensorHub.getValueBySensorNumber(4));
-     delay(500);
+     delay(500); 
   }
   
 }
@@ -179,6 +179,18 @@ void loop() {
 
 // *************************** calibration debugging *****************************
 /*
+    i++;
+    updateTime = millis();
+    Serial.print(i); 
+    
+    Serial.print("   Date :  "); Serial.print(rtc.month);  
+    Serial.print("/"); Serial.print(rtc.day); 
+    Serial.print("/"); Serial.print(rtc.year); 
+    Serial.print(","); Serial.print(rtc.week); 
+    Serial.print(","); Serial.print(rtc.hour); 
+    Serial.print(":"); Serial.print(rtc.minute); 
+    Serial.print(":"); Serial.print(rtc.second); 
+    
     Serial.print("   pH : "); 
     Serial.print(sensorHub.getValueBySensorNumber(0));
     Serial.print("  raw voltage : "); 
@@ -199,8 +211,6 @@ void loop() {
 
 // *************************** bluetooth sending debugging *****************************
 /* 
-    #define DEBUG true 
-    #define Serial if(DEBUG)Serial
 
      updateTime = millis();
      Serial.print("M");Serial.print(rtc.month);

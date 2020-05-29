@@ -57,7 +57,7 @@ def update(xnew, simulation = False):
     # to collect to update, or simulaton with gaussian noises
     if simulation==True:
             x = xnew + np.array([[1],[1]])*(np.random.random()-0.5)
-            y = np.array([[x[0,0,]],[x[1,0]]]) + np.random.normal(0,0.15,(2,1))
+            y = np.array([[x[0,0,]],[x[1,0]]]) + np.random.normal(0,0.5,(2,1))
     else:
         x = xnew
         y = np.array([[x[0,0,]],[x[1,0]]])
@@ -115,7 +115,7 @@ def plotKalmanGraph(timeMax,list_x,list_y,list_xhat):
     plt.plot(abscissa, np.array(list_x)[:,0,0], 'g.', label="true")
     plt.plot(abscissa, np.array(list_y)[:,0,0], 'c', label="measured")
     plt.plot(abscissa, np.array(list_xhat)[:,0,0],'r',label="estimed")
-    plt.title('Kalman filter applied to sensors through time')
+    plt.title('Kalman filter applied to sensors as a function of time')
     plt.ylabel('pH')
     plt.legend()
     

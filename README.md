@@ -11,7 +11,7 @@ A guide is provided in **Wiki section > Measurements with Arduino Bluno**.
 
 The measurements and time can be sent from Arduino Bluno through Bluetooth Low Energy, and received by a Raspberry Pi 3 B+ (or other models with a BLE integrated module). The first device plays the *peripheral* role, the second one plays the *central* role.
 
-
+A guide is provided in **Wiki section > BLE communication between an Arduino Bluno and a Raspberry Pi**.
 
 
 

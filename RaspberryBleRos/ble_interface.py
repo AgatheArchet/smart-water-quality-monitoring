@@ -15,7 +15,7 @@ from bluepy.btle import Peripheral, UUID, DefaultDelegate
 
 class SensorsDelegate(DefaultDelegate):
     """
-    Deleguate object from bluepy library to manage notifications from the ARduino Bluno through BLE.
+    Deleguate object from bluepy library to manage notifications from the Arduino Bluno through BLE.
     """
     def __init__(self):
         DefaultDelegate.__init__(self)
@@ -73,7 +73,7 @@ if __name__=='__main__':
     try:
         while True:
             #ch.write(str.encode("ok"))
-            if bluno.waitForNotifications(1.0): # calls handleNotification()
+            if bluno.waitForNotifications(5.0): # calls handleNotification()
                  continue
             print("Waiting...")
     finally:
