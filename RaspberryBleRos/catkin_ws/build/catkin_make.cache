@@ -1,0 +1,2 @@
+bluetooth-sensors
+-DCATKIN_DEVEL_PREFIX=/home/catamaran/smart-water-quality-monitoring/RaspberryBleRos/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/catamaran/smart-water-quality-monitoring/RaspberryBleRos/catkin_ws/install -G Unix Makefiles
