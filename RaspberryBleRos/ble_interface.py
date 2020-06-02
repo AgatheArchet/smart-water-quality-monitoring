@@ -26,28 +26,29 @@ class SensorsDelegate(DefaultDelegate):
         Sorts data transmitted by Arduino Bluno through BLE.
         """
         if (cHandle==37):
-            if (len(data)>6):
-                msg = data.decode()
-                if(msg[0]=="M"):
-                    try:
-                        month, day, year, hour, minute, second = msg.replace("M"," ").replace("d"," ").replace("y"," ").replace("h"," ").replace("m"," ").replace("s"," ").split()
-                        print(month+"/"+day+"/"+year+"  "+hour+":"+minute+":"+second)
-                    except ValueError:
-                        pass
-                elif(msg[0:2]=="pH"):
-                    try:
-                        phValue, tpValue, ecValue = msg.replace("pH"," ").replace("tp"," ").replace("EC"," ").split()
-                        print("pH : "+phValue+" Temp : "+tpValue+"°C  Conductivity : "+ecValue+" mS/cm")
-                    except ValueError:
-                        pass
-                elif(msg[0:2]=="Do"):
-                    try:
-                        doValue, orValue = msg.replace("Do"," ").replace("Or"," ").split()
-                        print ("Dissolved Oxygen : "+doValue+" mg/L  Redox potential : "+orValue+" mV")
-                    except ValueError:
-                        pass
-            else:
-                pass
+            print(data)
+#            if (len(data)>6):
+#                msg = data.decode()
+#                if(msg[0]=="M"):
+#                    try:
+#                        month, day, year, hour, minute, second = msg.replace("M"," ").replace("d"," ").replace("y"," ").replace("h"," ").replace("m"," ").replace("s"," ").split()
+#                        print(month+"/"+day+"/"+year+"  "+hour+":"+minute+":"+second)
+#                    except ValueError:
+#                        pass
+#                elif(msg[0:2]=="pH"):
+#                    try:
+#                        phValue, tpValue, ecValue = msg.replace("pH"," ").replace("tp"," ").replace("EC"," ").split()
+#                        print("pH : "+phValue+" Temp : "+tpValue+"°C  Conductivity : "+ecValue+" mS/cm")
+#                    except ValueError:
+#                        pass
+#                elif(msg[0:2]=="Do"):
+#                    try:
+#                        doValue, orValue = msg.replace("Do"," ").replace("Or"," ").split()
+#                        print ("Dissolved Oxygen : "+doValue+" mg/L  Redox potential : "+orValue+" mV")
+#                    except ValueError:
+#                        pass
+#            else:
+#                pass
             
 def signal_handler(sig, frame):
     print('  You pressed Ctrl+C! Bluno disconnected')
@@ -72,7 +73,7 @@ if __name__=='__main__':
     print("\n Device connected")
     try:
         while True:
-            #ch.write(str.encode("ok"))
+            ch.write(str.encode("ok1"))
             if bluno.waitForNotifications(5.0): # calls handleNotification()
                  continue
             print("Waiting...")
