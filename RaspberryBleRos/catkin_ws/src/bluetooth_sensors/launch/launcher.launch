@@ -1,4 +1,3 @@
 <launch>
-<node pkg="bluetooth-sensors" type="printer.py" name="topic_publish" output="screen"></node>
-<node pkg="bluetooth-sensors" type="subscriber.py" name="topic_subscriber" output="screen"></node>
+<node pkg="bluetooth_sensors" type="ble_interface.py" name="ble_interface_node" output="screen"></node>
 </launch>
