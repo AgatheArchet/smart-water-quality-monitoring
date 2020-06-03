@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Created on Wed Jun  3 15:16:28 2020
@@ -7,13 +7,13 @@ Created on Wed Jun  3 15:16:28 2020
 """
 
 import rospy
-from bluetooth_sensors.msg import DataSensors
+from bluetooth_sensors.msg import SensorsData
 
 
-pub = rospy.Publisher('raw_data_topic', DataSensors)
+pub = rospy.Publisher('raw_data_topic', SensorsData)
 rospy.init_node('ble_interface_node', anonymous=True)
 rate = rospy.Rate(1) 
-msg = DataSensors()
+msg = SensorsData()
 msg.is_connected = True
 msg.date = ""
 msg.ph = -1
