@@ -23,7 +23,7 @@ msg.dissolved_oxygen = -1
 msg.redox_potential = -1
 
 while not rospy.is_shutdown():
-    rospy.loginfo(msg)
+    #rospy.loginfo(msg)
     pub.publish(msg)
     rate.sleep()
         
