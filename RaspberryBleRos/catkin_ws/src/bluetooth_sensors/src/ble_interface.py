@@ -10,7 +10,7 @@ import rospy
 from bluetooth_sensors.msg import SensorsData
 
 
-pub = rospy.Publisher('raw_data_topic', SensorsData)
+pub = rospy.Publisher('raw_data_topic', SensorsData, queue_size=1)
 rospy.init_node('ble_interface_node', anonymous=True)
 rate = rospy.Rate(1) 
 msg = SensorsData()

@@ -17,7 +17,7 @@ def callback(raw_data):
     
 rospy.init_node('kalman_filter_node')
 sub = rospy.Subscriber('raw_data_topic',SensorsData,callback)
-pub = rospy.Publisher('filtered_data_topic', SensorsData)
+pub = rospy.Publisher('filtered_data_topic', SensorsData, queue_size=1)
 rate = rospy.Rate(1) 
 filtered_data = SensorsData()
 filtered_data.is_connected = True
@@ -28,5 +28,5 @@ filtered_data.temperature = -1
 filtered_data.dissolved_oxygen = -1 
 filtered_data.redox_potential = -1
 
-rospy.spin()
+rospy.spin() # to give some time for kalman fileterig
 
