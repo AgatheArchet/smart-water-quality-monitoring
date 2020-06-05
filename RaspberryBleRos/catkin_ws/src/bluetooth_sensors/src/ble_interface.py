@@ -25,7 +25,6 @@ class SensorsDelegate(DefaultDelegate):
         Sorts data transmitted by Arduino Bluno through BLE.
         """
         if (cHandle==37):
-            print(data)
             if (len(data)>6):
                 msg = data.decode()
                 if(msg[0]=="M"):
