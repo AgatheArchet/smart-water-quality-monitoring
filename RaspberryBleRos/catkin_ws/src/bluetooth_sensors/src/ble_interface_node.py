@@ -31,7 +31,7 @@ class SensorsDelegate(DefaultDelegate):
                     try:
                         month, day, year, hour, minute, second = message.replace("M"," ").replace("d"," ").replace("y"," ").replace("h"," ").replace("m"," ").replace("s"," ").split()
                         #print(month+"/"+day+"/"+year+"  "+hour+":"+minute+":"+second)
-			msg.date = str("%02d/%02d/%04d %02d:%02d:%02d" % (int(month),int(day),int(year),int(hour),int(minute),int(second)))
+                        msg.date = str("%02d/%02d/%04d %02d:%02d:%02d" % (int(month),int(day),int(year),int(hour),int(minute),int(second)))
                     except ValueError:
                         pass
                 elif(message[0:2]=="pH"):
@@ -46,7 +46,7 @@ class SensorsDelegate(DefaultDelegate):
                         doValue, orValue = message.replace("Do"," ").replace("Or"," ").split()
                         #print ("Dissolved Oxygen : "+doValue+" mg/L  Redox potential : "+orValue+" mV")
                         msg.dissolved_oxygen, msg.redox_potential = float(doValue), float(orValue)
-			pub.publish(msg)
+                        pub.publish(msg)
                         #rospy.loginfo(msg)
                         rate.sleep()
                     except ValueError:
@@ -55,26 +55,26 @@ class SensorsDelegate(DefaultDelegate):
                 pass
 
 def signalHandler(sig, frame):
-	"""
-	Catches kill signals to terminate the node and disconnect the Arduino Bluno.
-	"""
-	print('  You pressed Ctrl+C! Bluno disconnected')
-        if ('bluno' in globals()):
-    		bluno.disconnect()
+    """
+    Catches kill signals to terminate the node and disconnect the Arduino Bluno.
+    """
+    print('  You pressed Ctrl+C! Bluno disconnected')
+    if ('bluno' in globals()):
+        bluno.disconnect()
         msg.is_connected = False
         sys.exit(0)
         rospy.signal_shutdown('  Ctrl+C was pressed')
 
 def connectToBLE():
-	"""
-	Connects to the BLE device.
-	"""
-        bluno = Peripheral("C8:DF:84:24:27:F6", "public")
-        bluno.setDelegate(SensorsDelegate())
-
-        svc = bluno.getServiceByUUID("dfb0")
-        ch = svc.getCharacteristics("dfb1")[0]
-        return (bluno, ch)
+    """
+    Connects to the BLE device.
+    """
+    bluno = Peripheral("C8:DF:84:24:27:F6", "public")
+    bluno.setDelegate(SensorsDelegate())
+    
+    svc = bluno.getServiceByUUID("dfb0")
+    ch = svc.getCharacteristics("dfb1")[0]
+    return (bluno, ch)
 
 def initSignalHandler():
 	"""
@@ -114,12 +114,12 @@ msg.is_connected = True
 try:
 	while not rospy.is_shutdown():
                 if bluno.waitForNotifications(5.0): # calls handleNotification()
-			continue
+                    continue
                 print("Waiting...")
 		#ch.write(str.encode("ok1"))
 
 finally:
         bluno.disconnect()
-	msg.is_connected = False
+        msg.is_connected = False
         pub.publish(msg)
         rate.sleep()
