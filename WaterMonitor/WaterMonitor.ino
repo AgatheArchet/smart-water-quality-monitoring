@@ -103,7 +103,7 @@ void loop() {
 	sdService.update();
   sensorHub.calibrate(); // if calibration required at any time
   
-  if(millis() - updateTime > 1500) // 2 seconds between each Serial.print()
+  if(millis() - updateTime > 900) // 2 seconds between each Serial.print()
   {
      // change the code in this part if needed
      updateTime = millis(); 
@@ -113,14 +113,14 @@ void loop() {
      Serial.print("h"); Serial.print(rtc.hour);
      Serial.print("m");Serial.print(rtc.minute);
      Serial.print("s"); Serial.print(rtc.second);
-     delay(500);
+     delay(300);
      Serial.print("pH"); Serial.print(sensorHub.getValueBySensorNumber(0));
      Serial.print("tp"); Serial.print("25.0");  //Serial.print(sensorHub.getValueBySensorNumber(1));
      Serial.print("EC"); Serial.print(sensorHub.getValueBySensorNumber(3));
-     delay(500);
+     delay(300);
      Serial.print("Do");Serial.print("0.00"); //Serial.print(sensorHub.getValueBySensorNumber(2));
      Serial.print("Or"); Serial.print("0.00");//Serial.print(sensorHub.getValueBySensorNumber(4));
-     delay(500); 
+     delay(300); 
   }
   
 }
