@@ -8,8 +8,7 @@ Created on Wed Jun  3 15:16:28 2020
 
 import rospy
 from bluetooth_sensors.msg import SensorsData
-import signal
-import sys
+import signal, sys
 from bluepy.btle import Peripheral, DefaultDelegate
 
 class SensorsDelegate(DefaultDelegate):
@@ -88,7 +87,7 @@ def initSignalHandler():
 
 def initNode():
 	"""
-	Initialize the node and the assocaited publisher.
+	Initializes the node and the associated publisher.
 	"""
 	pub = rospy.Publisher('raw_data_topic', SensorsData, queue_size=1)
 	rospy.init_node('ble_interface_node', anonymous=True, disable_signals=True)

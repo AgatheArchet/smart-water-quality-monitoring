@@ -132,7 +132,7 @@ def plotKalmanGraph(timeMax,list_x,list_y,list_xhat):
 if __name__ == '__main__':
     
     #with graphical results
-    dataSensors,Γsensors,u,A,measurements,C,dataSensorsEstimed,Γα,Γβ,list_dataTrue,list_dataMeasured,list_dataEstimed = initKalmanFilter(7.13,2.36, True)
+    dataSensors,Γsensors,u,A,measurements,C,dataSensorsEstimed,Γα,Γβ,list_dataTrue,list_dataMeasured,list_dataEstimed = initKalmanFilter(7.13,7.86, True)
     time = 0
     timeMax = 150
     while(time < timeMax):
