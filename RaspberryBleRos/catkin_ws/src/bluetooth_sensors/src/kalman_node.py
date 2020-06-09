@@ -62,7 +62,7 @@ def update(xnew):
 def updateKalmanFilter(xnew,xhat,u,Gx,Ga,Gb,A,C):
     """
     Collects new values measured and applies them to the Kalman filter.
-    x : true values, y : measurements, xhat : kalman-estimed values  
+    x : true values, y : measurements, xhat : kalman-Estimated values  
     """
     x,y = update(xnew)
     xhat, Gx = kalman(xhat,Gx,u,y,Ga,Gb,A,C)
@@ -85,7 +85,7 @@ def initKalmanFilter(firstPhValue,firstEcValue):
     
     #  estimation : x_ = A*x + u + a / y_ = C*x_ + b
     xhat = np.array([[x[0,0]],[x[1,0]]])
-    Ga = np.diag([0.8,0.8]) # estimated error on model
+    Ga = np.diag([0.5,0.5]) # estimated error on model
     Gb = np.diag([0.2,0.2]) # estimated error on each mesaurement
     
     return(x,Gx,u,A,y,C,xhat,Ga,Gb)
@@ -113,21 +113,21 @@ def callback(raw_data):
     Notifications perceived by the ROS subscriber.
     """
     global sub,pub,rate,filtered_data, initialized, f
-    global dataSensors,Gsensors,u,A,measurements,C,dataSensorsEstimed,Ga,Gb
+    global dataSensors,Gsensors,u,A,measurements,C,dataSensorsEstimated,Ga,Gb
     if ((raw_data.ph!=1) and (raw_data.conductivity!=1)):
         if not(initialized):
             print("Kalman filter initialization")
-            dataSensors,Gsensors,u,A,measurements,C,dataSensorsEstimed,Ga,Gb = initKalmanFilter(raw_data.ph, raw_data.conductivity)
+            dataSensors,Gsensors,u,A,measurements,C,dataSensorsEstimated,Ga,Gb = initKalmanFilter(raw_data.ph, raw_data.conductivity)
             initialized = True
         # Kalman filter 
         dataSensors = np.array([[raw_data.ph],[raw_data.conductivity]]) 
-        dataSensorsEstimed, Gsensors = updateKalmanFilter(dataSensors,dataSensorsEstimed,u,Gsensors,Ga,Gb,A,C)
+        dataSensorsEstimated, Gsensors = updateKalmanFilter(dataSensors,dataSensorsEstimated,u,Gsensors,Ga,Gb,A,C)
         if not(f.closed):
-            f.writelines("%.3f;%.3f;%.3f;%.3f\n" % (raw_data.ph,dataSensorsEstimed[0,0],raw_data.conductivity,dataSensorsEstimed[1,0]))
+            f.writelines("%.3f;%.3f;%.3f;%.3f\n" % (raw_data.ph,dataSensorsEstimated[0,0],raw_data.conductivity,dataSensorsEstimated[1,0]))
             #print("writting to file...")
         # update filtered_data message
         filtered_data = raw_data
-        filtered_data.ph, filtered_data.conductivity = dataSensorsEstimed[0,0], dataSensorsEstimed[1,0]
+        filtered_data.ph, filtered_data.conductivity = dataSensorsEstimated[0,0], dataSensorsEstimated[1,0]
     else:
         filtered_data = raw_data
     #rospy.loginfo(filtered_data)
@@ -139,7 +139,7 @@ def callback(raw_data):
 initSignalHandler()
 sub,pub,rate,filtered_data = initNode()
 initialized = False
-dataSensors,Gsensors,u,A,measurements,C,dataSensorsEstimed,Ga,Gb = None,None,None,None,None,None,None,None,None
+dataSensors,Gsensors,u,A,measurements,C,dataSensorsEstimated,Ga,Gb = None,None,None,None,None,None,None,None,None
 f = open("/home/agathe/Documents/A2/Stage/Projet/smart-water-quality-monitoring/RaspberryBleRos/catkin_ws/src/bluetooth_sensors/src/kalman_graph.txt","w+")
 
 rospy.spin() # subscriber callback

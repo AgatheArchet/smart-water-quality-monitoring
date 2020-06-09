@@ -17,6 +17,8 @@ with open(filename, 'r') as f:
 
 abscissa = np.arange(0, len(ph_raw))
 plt.subplot(2, 1, 1)
+plt.plot(abscissa, 7.00*np.ones(len(ec_raw)), 'g--', label="buffer solution")
+plt.plot(abscissa, 4.00*np.ones(len(ec_raw)), 'g--', label="buffersolution")
 plt.plot(abscissa, np.array(ph_raw), 'c', label="measured")
 plt.plot(abscissa, np.array(ph_filt),'r',label="estimed")
 plt.title('Kalman filter applied to sensors as a function of time')
@@ -26,6 +28,8 @@ plt.xlabel('sec')
 plt.legend()
 
 plt.subplot(2, 1, 2)
+plt.plot(abscissa, 12.88*np.ones(len(ec_raw)), 'g--', label="buffer solution")
+plt.plot(abscissa, 1.413*np.ones(len(ec_raw)), 'g--', label="buffersolution")
 plt.plot(abscissa, np.array(ec_raw), 'c', label="measured")
 plt.plot(abscissa, np.array(ec_filt),'r',label="estimed")
 plt.ylabel('Condictivity (mS/cm)')

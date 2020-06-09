@@ -104,7 +104,7 @@ void loop() {
   sensorHub.calibrate(); // if calibration required at any time
   
   if(millis() - updateTime > 900) // 2 seconds between each Serial.print()
-  { /*
+  { 
      // change the code in this part if needed
      updateTime = millis(); 
      Serial.print("M");Serial.print(rtc.month);
@@ -120,20 +120,7 @@ void loop() {
      delay(300);
      Serial.print("Do");Serial.print("-1.00"); //Serial.print(sensorHub.getValueBySensorNumber(2));
      Serial.print("Or"); Serial.print("-1.00");//Serial.print(sensorHub.getValueBySensorNumber(4));
-     delay(300); */
-
-    i++;
-    updateTime = millis();
-    Serial.print(i); 
-
-    Serial.print("   EC : "); 
-    Serial.print(sensorHub.getValueBySensorNumber(3)); 
-    Serial.print(" mS/cm");
-    Serial.print("  raw voltage : "); 
-    double value = analogRead(A1);
-    Serial.print(value);
-    Serial.print("  volatge  :  ");
-    Serial.println(value/1024.0*5000);
+     delay(300); 
   } 
 }
 
