@@ -1,5 +1,5 @@
 <launch>
 <node pkg="bluetooth_sensors" type="ble_interface_node.py" name="ble_interface_node" output="screen"></node>
 <node pkg="bluetooth_sensors" type="kalman_node.py" name="kalman_filter_node" output="screen"></node>
-<node pkg="bluetooth_sensors" type="user_interface_node.py" name="user_interface__node"></node>
+<node pkg="bluetooth_sensors" type="user_interface_node.py" name="user_interface__node" output="screen"></node>
 </launch>

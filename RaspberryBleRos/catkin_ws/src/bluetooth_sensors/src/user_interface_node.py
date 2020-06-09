@@ -10,7 +10,6 @@ import rospy
 from bluetooth_sensors.msg import SensorsData
 
 def callback(filtered_data):
-    print(filtered_data)
     rospy.loginfo(filtered_data)
     
 rospy.init_node('user_interface_node')

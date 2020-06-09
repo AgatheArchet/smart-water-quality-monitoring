@@ -118,8 +118,8 @@ void loop() {
      Serial.print("tp"); Serial.print("25.0");  //Serial.print(sensorHub.getValueBySensorNumber(1));
      Serial.print("EC"); Serial.print(sensorHub.getValueBySensorNumber(3));
      delay(300);
-     Serial.print("Do");Serial.print("0.00"); //Serial.print(sensorHub.getValueBySensorNumber(2));
-     Serial.print("Or"); Serial.print("0.00");//Serial.print(sensorHub.getValueBySensorNumber(4));
+     Serial.print("Do");Serial.print("-1.00"); //Serial.print(sensorHub.getValueBySensorNumber(2));
+     Serial.print("Or"); Serial.print("-1.00");//Serial.print(sensorHub.getValueBySensorNumber(4));
      delay(300); 
   }
   

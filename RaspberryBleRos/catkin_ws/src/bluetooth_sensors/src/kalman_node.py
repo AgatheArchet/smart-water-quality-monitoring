@@ -55,7 +55,7 @@ def update(xnew):
     data collected from simulation or BLE.
     """
     # uncertainties on the model modelised with gaussian noises
-    x = xnew + 0.2*np.array([[1],[1]])*(np.random.random()-0.5)
+    x = xnew
     y = np.array([[xnew[0,0,]],[xnew[1,0]]])
     return(x,y)
     
@@ -64,7 +64,6 @@ def updateKalmanFilter(xnew,xhat,u,Gx,Ga,Gb,A,C):
     Collects new values measured and applies them to the Kalman filter.
     x : true values, y : measurements, xhat : kalman-estimed values  
     """
-    print("Kalman update")
     x,y = update(xnew)
     xhat, Gx = kalman(xhat,Gx,u,y,Ga,Gb,A,C)
     return(xhat,Gx)
@@ -86,8 +85,8 @@ def initKalmanFilter(firstPhValue,firstEcValue):
     
     #  estimation : x_ = A*x + u + a / y_ = C*x_ + b
     xhat = np.array([[x[0,0]],[x[1,0]]])
-    Ga = np.diag([0.5,0.5]) # estimated error on model
-    Gb = np.diag([0.4,0.4]) # estimated error on each mesaurement
+    Ga = np.diag([0.8,0.8]) # estimated error on model
+    Gb = np.diag([0.2,0.2]) # estimated error on each mesaurement
     
     return(x,Gx,u,A,y,C,xhat,Ga,Gb)
     
@@ -123,11 +122,9 @@ def callback(raw_data):
         # Kalman filter 
         dataSensors = np.array([[raw_data.ph],[raw_data.conductivity]]) 
         dataSensorsEstimed, Gsensors = updateKalmanFilter(dataSensors,dataSensorsEstimed,u,Gsensors,Ga,Gb,A,C)
-        print(dataSensors, dataSensorsEstimed)
         if not(f.closed):
             f.writelines("%.3f;%.3f;%.3f;%.3f\n" % (raw_data.ph,dataSensorsEstimed[0,0],raw_data.conductivity,dataSensorsEstimed[1,0]))
-            print("writting to file...")
-        #print(raw_data.ph,dataSensorsEstimed[0,0],raw_data.conductivity,dataSensorsEstimed[1,0])
+            #print("writting to file...")
         # update filtered_data message
         filtered_data = raw_data
         filtered_data.ph, filtered_data.conductivity = dataSensorsEstimed[0,0], dataSensorsEstimed[1,0]
