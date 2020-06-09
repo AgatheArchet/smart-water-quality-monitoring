@@ -13,6 +13,8 @@ The measurements and time can be sent from Arduino Bluno through Bluetooth Low E
 
 A guide is provided in **Wiki section > BLE communication between an Arduino Bluno and a Raspberry Pi**.
 
+## Part 3 : ROS achitecture on Raspberry Pi
 
+Finally, once collected by the Raspberry Pi, the data must be correctly sorted and filtered before being sent to user. A middleware achitecture will be used (ROS melodic). 
 
-
+A guide is provided in **Wiki section > A middleware achitecture on Raspberry Pi**.
