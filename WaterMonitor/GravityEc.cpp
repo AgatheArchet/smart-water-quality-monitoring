@@ -32,7 +32,7 @@
 
 
 GravityEc::GravityEc(ISensor* temp) :ecSensorPin(A1), ECcurrent(0), _AnalogAverage(0), AnalogSampleTime(0), _sumVoltage(0),AnalogSampleInterval(25),
-_kvalue(1.0),_kvalueLow(1.0), _kvalueHigh(1.0), _voltage(0.0), _temperature(25.0)
+_kvalue(1.0),_kvalueLow(1.02), _kvalueHigh(1.06), _voltage(0.0), _temperature(25.0)
 {
 	this->_ecTemperature = temp;
 }
@@ -202,11 +202,12 @@ void GravityEc::calibration(byte mode)
       if(enterCalibrationFlag){
               Serial.println();
               if(ecCalibrationFinish){   
-                  if((this->_rawEC>0.9)&&(this->_rawEC<1.9)){
-                      EEPROM_write(KVALUEADDR, this->_kvalueLow);
-                  }else if((this->_rawEC>9)&&(this->_rawEC<16.8)){
+                Serial.println(this->_rawEC);
+                  //if((this->_rawEC>0.9)&&(this->_rawEC<1.9)){
+                      EEPROM_write(KVALUEADDR, this->_kvalueLow); 
+                  //}else if((this->_rawEC>9)&&(this->_rawEC<16.8)){
                       EEPROM_write(KVALUEADDR+4, this->_kvalueHigh);
-                  }
+                  //}
                   Serial.print(F(">>>Calibration Successful"));
               }else{
                   Serial.print(F(">>>Calibration Failed"));

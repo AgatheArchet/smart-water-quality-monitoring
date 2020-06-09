@@ -174,13 +174,11 @@ void GravityPh::calibration(byte mode)
           Serial.println();
           if(phCalibrationFinish)
           {
-              if((this->_voltage>1322)&&(this->_voltage<1678))
-              {
+              //if((this->_voltage>1322)&&(this->_voltage<1678)){
                   EEPROM_write(PHVALUEADDR, this->_neutralVoltage);
-              }else if((this->_voltage>1854)&&(this->_voltage<2210))
-                        {
+              //}else if((this->_voltage>1854)&&(this->_voltage<2210)){
                            EEPROM_write(PHVALUEADDR+4, this->_acidVoltage);
-                         }
+              //}
               Serial.print(F(">>>Calibration Successful"));
           }else{
               Serial.print(F(">>>Calibration Failed"));
