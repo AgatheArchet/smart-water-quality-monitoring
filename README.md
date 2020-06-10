@@ -15,6 +15,6 @@ A guide is provided in **[Wiki section](https://github.com/AgatheArchet/smart-wa
 
 ## Part 3 : ROS achitecture on Raspberry Pi
 
-Finally, once collected by the Raspberry Pi, the data must be correctly sorted and filtered before being sent to user. A middleware achitecture will be used (ROS melodic). 
+Finally, once collected by the Raspberry Pi, the data must be correctly sorted and filtered before being sent to the user. A middleware architecture will be used (ROS melodic). 
 
 A guide is provided in **[Wiki section](https://github.com/AgatheArchet/smart-water-quality-monitoring/wiki) > A middleware achitecture on Raspberry Pi**.
