@@ -19,9 +19,9 @@ def signalHandler(sig, frame):
     if ('f' in globals()):
 
         print('  file closed')
-        rospy.signal_shutdown('  Ctrl+C was pressed')
         f.close()
-        sys.exit(0)
+    rospy.signal_shutdown('  Ctrl+C was pressed')
+    sys.exit(0)
         
 def initSignalHandler():
 	"""
@@ -140,7 +140,7 @@ initSignalHandler()
 sub,pub,rate,filtered_data = initNode()
 initialized = False
 dataSensors,Gsensors,u,A,measurements,C,dataSensorsEstimated,Ga,Gb = None,None,None,None,None,None,None,None,None
-f = open("/home/agathe/Documents/A2/Stage/Projet/smart-water-quality-monitoring/RaspberryBleRos/catkin_ws/src/bluetooth_sensors/src/kalman_graph.txt","w+")
+#f = open("/home/agathe/Documents/A2/Stage/Projet/smart-water-quality-monitoring/RaspberryBleRos/catkin_ws/src/bluetooth_sensors/src/kalman_graph.txt","w+")
 
 rospy.spin() # subscriber callback
 
