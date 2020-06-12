@@ -9,8 +9,9 @@ Created on Thu May 28 14:44:05 2020
 import signal
 import sys
 from bluepy.btle import Peripheral, UUID, DefaultDelegate
- 
+
 # tutorial for bluetooth settings : https://learn.adafruit.com/install-bluez-on-the-raspberry-pi/installation
+
 
 class SensorsDelegate(DefaultDelegate):
     """
