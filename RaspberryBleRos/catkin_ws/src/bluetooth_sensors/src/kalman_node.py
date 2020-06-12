@@ -18,7 +18,7 @@ def signalHandler(sig, frame):
     print('  You pressed Ctrl+C! Kalman proprely terminated')
     if ('f' in globals()):
         print('  file closed')
-        #f.close()
+        f.close()
     rospy.signal_shutdown('  Ctrl+C was pressed')
     sys.exit(0)
         
@@ -121,8 +121,9 @@ def callback(raw_data):
         # Kalman filter 
         dataSensors = np.array([[raw_data.ph],[raw_data.conductivity]]) 
         dataSensorsEstimated, Gsensors = updateKalmanFilter(dataSensors,dataSensorsEstimated,u,Gsensors,Ga,Gb,A,C)
-        if not(f.closed):
-            f.writelines("%.3f;%.3f;%.3f;%.3f\n" % (raw_data.ph,dataSensorsEstimated[0,0],raw_data.conductivity,dataSensorsEstimated[1,0]))
+        if ('f' in globals()):
+           if not(f.closed):
+               f.writelines("%.3f;%.3f;%.3f;%.3f\n" % (raw_data.ph,dataSensorsEstimated[0,0],raw_data.conductivity,dataSensorsEstimated[1,0]))
             #print("writting to file...")
         # update filtered_data message
         filtered_data = raw_data
