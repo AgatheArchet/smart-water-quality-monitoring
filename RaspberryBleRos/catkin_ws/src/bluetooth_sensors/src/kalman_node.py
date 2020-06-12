@@ -18,7 +18,7 @@ def signalHandler(sig, frame):
     print('  You pressed Ctrl+C! Kalman proprely terminated')
     if ('f' in globals()):
         print('  file closed')
-        f.close()
+        #f.close()
     rospy.signal_shutdown('  Ctrl+C was pressed')
     sys.exit(0)
         
