@@ -10,7 +10,9 @@ Created on Thu Jun 11 16:10:42 2020
 #utm.to_latlon(418666.8701892403, 5581094.969314943, 30, 'U') #UTMXY to swg84
 
 import utm
+import math as m, numpy as np
 from area_generator import Area
+from graph import Graph
 from scipy.spatial import Delaunay
 
 def readData(filename):
@@ -35,29 +37,41 @@ def LatLonToUTMXY(list_lat,list_lon):
         y.append(res[1])
     return(x,y)
     
-def normalization(list_x,list_y):
-    max_X = max(list_x)
-    max_Y = max(list_y)
-    list_x_norm = [x/max_X for x in list_x]
-    list_y_norm = [y/max_Y for y in list_y]
+def normalize(list_x,list_y):
+    max_X,min_X = max(list_x), min(list_x)
+    max_Y,min_Y = max(list_y), min(list_y)
+    list_x_norm = [(x-min_X)/(max_X-min_X) for x in list_x]
+    list_y_norm = [(y-min_Y)/(max_Y-min_Y) for y in list_y]
     return(list_x_norm,list_y_norm)
-        
-# Genarating points, optional if all points are already known
-GPSpoints = np.array([[50.352473,-4.161624],[50.352473,-4.134152],[50.343769,-4.134152],[50.343769,-4.161624],[50.352473,-4.161624]])
-A = Area(100,GPSpoints[0,:],GPSpoints,"square")
-A.placeMeasurementPoints()
-A.generateFile()
+    
+def euclideanDistance(xa,xb,ya,yb):
+    return(m.sqrt((yb-ya)**2+(xb-xa)**2))
+      
+if __name__=='__main__':
+    
+    # Genarating points, optional if all points are already known
+    GPSpoints = np.array([[50.352473,-4.161624],[50.352473,-4.134152],[50.343769,-4.134152],[50.343769,-4.161624],[50.352473,-4.161624]])
+    A = Area(100,GPSpoints[0,:],GPSpoints,"square")
+    A.placeMeasurementPoints()
+    A.generateFile()
+    
+    # Reading points from the file
+    begining,lat,lon = readData("points.txt")
+    x_list,y_list = LatLonToUTMXY(lat,lon)
+    x_list,y_list = normalize(x_list,y_list)
+    #points = np.array([x_list,y_list]).T
+    
+    # Creating a graph
+    
+    G = Graph()
+    G.addVertices(x_list,y_list)
+    G.defineWind(m.pi/2)
+    
+    # Random strategy
+    G.addEdgesAuto()
+    G.solveRandom(200000)
+    G.plot()
 
-# Reading points from the file
-begining,lat,lon = readData("points.txt")
-x,y = LatLonToUTMXY(lat,lon)
-x,y = normalization(x,y)
-points = np.array([x,y]).T
-
-
-#TO DO Delaunay ? with https://github.com/jmespadero/pyDelaunay2D
-#tri = Delaunay(points)
-#plt.triplot(points[:,0], points[:,1], tri.simplices.copy())
 
 
 #----------------------------------------------------------
@@ -75,3 +89,11 @@ points = np.array([x,y]).T
 # Third approach : Bionic tour strategy     
 #
 # Fourth approach : genetic algorithms ?           
+
+
+
+
+#TO DO Delaunay ? with https://github.com/jmespadero/pyDelaunay2D
+#tri = Delaunay(points)
+#plt.triplot(points[:,0], points[:,1], tri.simplices.copy())
+
