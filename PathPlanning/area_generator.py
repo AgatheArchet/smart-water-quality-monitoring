@@ -38,6 +38,9 @@ class Area:
          self.points_lon = None
          
     def placeMeasurementPoints(self):
+        """
+        generates points accordingly to the area's constraints and properties.
+        """
         if self.shape=="square":
             min_lat, max_lat = np.min(self.contour[:,0]), np.max(self.contour[:,0])
             min_lon, max_lon = np.min(self.contour[:,1]), np.max(self.contour[:,1])
@@ -47,14 +50,20 @@ class Area:
             self.points_lat, self.points_lon = np.meshgrid(lat_list,lon_list) 
             
     def generateMap(self):
+        """
+        plots a graph of the points for a clear representation of the area. 
+        """
         ax = plt.gca()
-        ax.set_facecolor("#2C7FCA")
+        #ax.set_facecolor("#2C7FCA")
         plt.plot(self.contour[:,0],self.contour[:,1],'g--')
         plt.plot(self.points_lat,self.points_lon,'oc')
         plt.plot(self.beginning[0],self.beginning[1],'ro')
         plt.show()
     
     def generateFile(self):
+        """
+        writes the area's points into a file for futher use.
+        """
         f = open("points.txt","w")
         f.write("#beginning\n")
         f.write('{},{},\n'.format(self.beginning[0],self.beginning[1]))

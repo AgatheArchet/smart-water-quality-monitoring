@@ -10,7 +10,7 @@ Created on Thu Jun 11 16:10:42 2020
 #utm.to_latlon(418666.8701892403, 5581094.969314943, 30, 'U') #UTMXY to swg84
 
 import utm
-from measurement_points_generator import Area
+from area_generator import Area
 from scipy.spatial import Delaunay
 
 def readData(filename):
@@ -42,20 +42,36 @@ def normalization(list_x,list_y):
     list_y_norm = [y/max_Y for y in list_y]
     return(list_x_norm,list_y_norm)
         
-
-#50.352473, -4.161624
-#50.343769, -4.134152
+# Genarating points, optional if all points are already known
 GPSpoints = np.array([[50.352473,-4.161624],[50.352473,-4.134152],[50.343769,-4.134152],[50.343769,-4.161624],[50.352473,-4.161624]])
 A = Area(100,GPSpoints[0,:],GPSpoints,"square")
 A.placeMeasurementPoints()
 A.generateFile()
 
-
+# Reading points from the file
 begining,lat,lon = readData("points.txt")
 x,y = LatLonToUTMXY(lat,lon)
 x,y = normalization(x,y)
 points = np.array([x,y]).T
 
+
 #TO DO Delaunay ? with https://github.com/jmespadero/pyDelaunay2D
-tri = Delaunay(points)
-plt.triplot(points[:,0], points[:,1], tri.simplices.copy())
+#tri = Delaunay(points)
+#plt.triplot(points[:,0], points[:,1], tri.simplices.copy())
+
+
+#----------------------------------------------------------
+
+# Added constraints : wind direction
+
+#First approach : Delaunay triangulation to limit possible neighbours
+#                 nearest neighbour strategy
+
+#Second approch : random path at begining
+#                  generate a new path by switching two cities
+#                  select the best path between the two
+#                   do it again
+   
+# Third approach : Bionic tour strategy     
+#
+# Fourth approach : genetic algorithms ?           
