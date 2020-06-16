@@ -6,7 +6,8 @@ Created on Mon Jun 15 10:32:40 2020
 @author: agathe
 """
 from math import cos,sin,pi,atan2, sqrt
-import matplotlib.pyplot as plt, random
+from itertools import chain
+import matplotlib.pyplot as plt, numpy as np, random
 
 class Graph:
     """
@@ -68,19 +69,22 @@ class Graph:
             xa,ya = self.vertices[from_node]
             xb,yb = self.vertices[to_node]
             slope = atan2(yb-ya,xb-xa)
-            penalty = 0.5*self.wind_speed*cos(self.wind_angle-slope)
+            penalty = self.wind_speed*cos(self.wind_angle-slope)
         else:
             penalty = 0
         self.edges[(from_node, to_node)] = weight*(1+max(0,penalty))
         #self.edges[(to_node, from_node)] = weight*(1+max(0,-penalty))
         
-    def addEdgeFromCoords(self, from_node, to_node, weight):
+    def addEdgeFromCoords(self, from_node, to_node, weight=0):
         """
         adds edges, but directly with the two vertices' coordinates.
         """
         u = self.getAssociatedNumber(from_node[0],from_node[1])
         v = self.getAssociatedNumber(to_node[0],to_node[1])
+        if weight==0:
+            weight = sqrt((to_node[1]-from_node[1])**2+(to_node[0]-from_node[0])**2)
         self.addEdge(u,v,weight)
+        self.addEdge(v,u,weight)
         
     def addEdgesAuto(self):
         """
@@ -132,7 +136,7 @@ class Graph:
         value += self.getDist(path[-1],path[0])
         return(value)
          
-    def plot(self):
+    def plot(self,gradual=False):
         """
         gives a graphical representation of the path.
         """
@@ -142,7 +146,27 @@ class Graph:
             y.append(self.vertices[points][1])
         x.append(self.vertices[self.path[0]][0])
         y.append(self.vertices[self.path[0]][1])
-        plt.plot(x,y, 'xg-')
+        max_X,max_Y,min_X,min_Y = max(x),max(y),min(x),min(y)
+        plt.xlim([min_X-0.2*(max_X-min_X),max_X+0.4*((max_X-min_X))])
+        plt.ylim([min_Y-0.2*(max_Y-min_Y),max_Y+0.4*(max_Y-min_Y)])
+        # points and colors
+        if not(gradual):
+            plt.plot(x,y, 'xg-')
+        else:
+            plt.plot(x[0],y[0],'go',markersize = 10)
+            for i in range(len(x)-1):
+                plt.plot([x[i],x[i+1]],[y[i],y[i+1]], 'x-',color=(i/len(x),(1-i/len(x)),0))
+        # wind arrow
+        if self.wind_angle != None:
+            self.draw_arrow(max_X+0.1*max_X,max_Y+0.1*max_Y,self.wind_angle,0.03*(max_X-min_X),self.wind_speed,'blue')
+            
+        
+    def draw_arrow(self,x,y,θ,e,w,col):
+        M1=np.array([[0,6*e,5*e,6*e,5*e],[0,0,-e,0,e]])
+        M=np.append(M1,[[1,1,1,1,1]],axis=0)
+        R=np.array([[cos(θ),-sin(θ),x],[sin(θ),cos(θ),y],[0,0,1]])
+        plt.plot((R@M)[0, :], (R@M)[1, :], col, linewidth = w/2)
+        plt.text(x+2*e, y+2*e, "wind", color="blue")
         
     def solveRandom(self,nb_of_tour=1000):
         """
@@ -152,13 +176,34 @@ class Graph:
         self.path = random.sample(range(n),n)
         length = self.getPathLength(self.path)
         for t in range(0,nb_of_tour):
-            print("length : "+str(length))
-            i,j = sorted(random.sample(range(0,n),2)); #diferent random points
+            print(str(t/nb_of_tour)+" length : "+str(length))
+            #switch 2 random different vertices to create a new path
+            i,j = sorted(random.sample(range(0,n),2)); 
             newPath =  self.path[:i]+self.path[j:j+1]+self.path[i+1:j]+ self.path[i:i+1]+self.path[j+1:];
+            #test of improvement
             if self.getPathLength(newPath) < length:
                 self.path = newPath
                 length = self.getPathLength(newPath)
                 
+    def solveLoop(self,nb_of_tour=10):
+        """
+        solver based on a random strategy.
+        """
+        n = len(self.vertices)
+        self.path = random.sample(range(n),n)
+        length = self.getPathLength(self.path)
+        for t in range(0,nb_of_tour):
+            for j in range(0,n):
+                for i in range(0,j-1):
+                    print(str(t/nb_of_tour)+" length : "+str(length))
+                    #switch 2 different vertices to create a new path
+                    newPath =  self.path[:i]+self.path[j:j+1]+self.path[i+1:j]+ self.path[i:i+1]+self.path[j+1:];
+                    #test of improvement
+                    if self.getPathLength(newPath) < length:
+                        self.path = newPath
+                        length = self.getPathLength(newPath)
+
+            
                 
         
 if __name__=='__main__':
@@ -171,5 +216,6 @@ if __name__=='__main__':
 #    G.addEdgeFromCoords((1,1),(3,6),2)
 #    G.addEdgeFromCoords((3,6),(0,0),5)
     G.addEdgesAuto()
-    G.solveRandom()
-    G.plot()
+    #G.solveRandom(100000)
+    G.solveLoop(100)
+    G.plot(gradual=True)

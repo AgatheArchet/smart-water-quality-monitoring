@@ -59,21 +59,33 @@ if __name__=='__main__':
     begining,lat,lon = readData("points.txt")
     x_list,y_list = LatLonToUTMXY(lat,lon)
     x_list,y_list = normalize(x_list,y_list)
-    #points = np.array([x_list,y_list]).T
     
     # Creating a graph
-    
     G = Graph()
     G.addVertices(x_list,y_list)
-    G.defineWind(m.pi/2)
+    G.defineWind(m.pi/2,5)
     
     # Random strategy
-    G.addEdgesAuto()
-    G.solveRandom(200000)
-    G.plot()
+#    G.addEdgesAuto()
+#    G.solveRandom(100000)
+#    G.plot(gradual=True)
+    
+    # Loop strategy
+#    G.addEdgesAuto()
+#    G.solveLoop(20)
+#    G.plot(gradual=True)
 
-
-
+    #Delaunay Strategy
+    points = np.array([x_list,y_list]).T
+    tri = Delaunay(points)
+    plt.triplot(points[:,0], points[:,1], tri.simplices.copy())
+    triangles = points[tri.simplices]
+    for summit in triangles :
+        G.addEdgeFromCoords(summit[0],summit[1])
+        G.addEdgeFromCoords(summit[1],summit[2])
+        G.addEdgeFromCoords(summit[2],summit[0])
+    #To do
+    G.plot(gradual=True)
 #----------------------------------------------------------
 
 # Added constraints : wind direction
