@@ -14,6 +14,7 @@ import math as m, numpy as np
 from area_generator import Area
 from graph import Graph
 from scipy.spatial import Delaunay
+import matplotlib.pyplot as plt
 
 def readData(filename):
     lat, lon = [],[] 
@@ -75,17 +76,20 @@ if __name__=='__main__':
 #    G.solveLoop(20)
 #    G.plot(gradual=True)
 
-    #Delaunay Strategy
+    # Nearest Neighbour Strategy
     points = np.array([x_list,y_list]).T
     tri = Delaunay(points)
     plt.triplot(points[:,0], points[:,1], tri.simplices.copy())
     triangles = points[tri.simplices]
     for summit in triangles :
-        G.addEdgeFromCoords(summit[0],summit[1])
-        G.addEdgeFromCoords(summit[1],summit[2])
-        G.addEdgeFromCoords(summit[2],summit[0])
-    #To do
+        G.addEdgeFromCoords(summit[0].tolist(),summit[1].tolist())
+        G.addEdgeFromCoords(summit[1].tolist(),summit[2].tolist())
+        G.addEdgeFromCoords(summit[2].tolist(),summit[0].tolist())
+    G.solveNearestNeighbour()
     G.plot(gradual=True)
+    plt.show()    
+    
+
 #----------------------------------------------------------
 
 # Added constraints : wind direction
@@ -98,12 +102,9 @@ if __name__=='__main__':
 #                  select the best path between the two
 #                   do it again
    
-# Third approach : Bionic tour strategy     
+# Third approach : Bitonic tour strategy     
 #
 # Fourth approach : genetic algorithms ?           
-
-
-
 
 #TO DO Delaunay ? with https://github.com/jmespadero/pyDelaunay2D
 #tri = Delaunay(points)

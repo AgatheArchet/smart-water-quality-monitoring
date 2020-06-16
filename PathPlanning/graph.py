@@ -133,7 +133,13 @@ class Graph:
         value = 0
         for i in range(len(self.vertices)-1):
             value += self.getDist(path[i],path[i+1])
-        value += self.getDist(path[-1],path[0])
+        # Exception : back to the begining
+        if self.getDist(path[-1],path[0]) == float('inf'):
+            x0,y0 = self.vertices[path[0]]
+            xEnd,yEnd = self.vertices[path[-1]]
+            value += sqrt((x0-xEnd)**2+(y0-yEnd)**2)
+        else:
+            value += self.getDist(path[-1],path[0])
         return(value)
          
     def plot(self,gradual=False):
@@ -159,6 +165,7 @@ class Graph:
         # wind arrow
         if self.wind_angle != None:
             self.draw_arrow(max_X+0.1*max_X,max_Y+0.1*max_Y,self.wind_angle,0.03*(max_X-min_X),self.wind_speed,'blue')
+        plt.title("Length : "+str(self.getPathLength(self.path)))
             
         
     def draw_arrow(self,x,y,θ,e,w,col):
@@ -176,7 +183,7 @@ class Graph:
         self.path = random.sample(range(n),n)
         length = self.getPathLength(self.path)
         for t in range(0,nb_of_tour):
-            print(str(t/nb_of_tour)+" length : "+str(length))
+            print(str(int(100*t/nb_of_tour))+"% length : "+str(length))
             #switch 2 random different vertices to create a new path
             i,j = sorted(random.sample(range(0,n),2)); 
             newPath =  self.path[:i]+self.path[j:j+1]+self.path[i+1:j]+ self.path[i:i+1]+self.path[j+1:];
@@ -187,7 +194,7 @@ class Graph:
                 
     def solveLoop(self,nb_of_tour=10):
         """
-        solver based on a random strategy.
+        solver based on a loop strategy.
         """
         n = len(self.vertices)
         self.path = random.sample(range(n),n)
@@ -195,7 +202,7 @@ class Graph:
         for t in range(0,nb_of_tour):
             for j in range(0,n):
                 for i in range(0,j-1):
-                    print(str(t/nb_of_tour)+" length : "+str(length))
+                    print(str(int(100*t/nb_of_tour))+"% length : "+str(length))
                     #switch 2 different vertices to create a new path
                     newPath =  self.path[:i]+self.path[j:j+1]+self.path[i+1:j]+ self.path[i:i+1]+self.path[j+1:];
                     #test of improvement
@@ -203,19 +210,47 @@ class Graph:
                         self.path = newPath
                         length = self.getPathLength(newPath)
 
-            
-                
+    def solveNearestNeighbour(self):
+        """
+        solver based on a nearest neighbour stregy, assuming edges are defined
+        accordingly to the Delaunay's triangulation.
+        """
+        unvisited_vertices = [k for k in range(1,len(self.vertices))]
+        visited_vertices = [0]
+        while len(unvisited_vertices)!=0:
+            print(str(int(100*len(visited_vertices)/len(self.vertices)))+" %")
+            min_vertex = visited_vertices[-1]
+            vertex = visited_vertices[-1]
+            for neighbour in unvisited_vertices:
+                if self.getDist(vertex,neighbour) < self.getDist(vertex,min_vertex):
+                    min_vertex = neighbour
+            visited_vertices.append(min_vertex)
+            unvisited_vertices.remove(min_vertex)
+        self.path = visited_vertices
+        print(self.getPathLength(self.path))
+      
         
 if __name__=='__main__':
     
     G = Graph()
     G.defineWind(pi/2)
-    G.addVertices([0,1,3,2.5,6,5,4],[0,1,6,1,0.5,4,1])
-    
-#    G.addEdgeFromCoords((0,0),(1,1),8)
-#    G.addEdgeFromCoords((1,1),(3,6),2)
-#    G.addEdgeFromCoords((3,6),(0,0),5)
-    G.addEdgesAuto()
+    x,y = [0,1,3,2.5,6,5,4],[0,1,6,1,0.5,4,1]
+
+    G.addVertices(x,y)
+
+    #G.addEdgesAuto()
     #G.solveRandom(100000)
-    G.solveLoop(100)
+    #G.solveLoop(100)
+    #G.plot(gradual=True)
+    
+    points = np.array([x,y]).T
+    tri = Delaunay(points)
+    plt.triplot(points[:,0], points[:,1],tri.simplices.copy(),c='#BBBBBB')
+    triangles = points[tri.simplices]
+    for summit in triangles :
+        G.addEdgeFromCoords(summit[0].tolist(),summit[1].tolist())
+        G.addEdgeFromCoords(summit[1].tolist(),summit[2].tolist())
+        G.addEdgeFromCoords(summit[2].tolist(),summit[0].tolist())
+    G.solveNearestNeighbour()
     G.plot(gradual=True)
+    
