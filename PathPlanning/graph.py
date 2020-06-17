@@ -7,11 +7,14 @@ Created on Mon Jun 15 10:32:40 2020
 """
 from math import cos,sin,pi,atan2, sqrt
 from itertools import chain
-import matplotlib.pyplot as plt, numpy as np, random
+import matplotlib.pyplot as plt
+import numpy as np
+import random
+from scipy.spatial import Delaunay
 
 class Graph:
     """
-    A class to modelize an graph of various verticies.
+    A class to modelize an asymetrical directed graph of various verticies.
     
     Attributes
     ----------
@@ -61,7 +64,7 @@ class Graph:
         
     def addEdge(self, from_node, to_node, weight):
         """
-        defines the weight of edge linking "from_nod"e to "to_node" vertices, 
+        defines the weight of edge linking "from_node" to "to_node" vertices, 
         and applies a wind penalty to avoid moving in the opposite direction of
         wind.
         """
@@ -86,10 +89,10 @@ class Graph:
         self.addEdge(u,v,weight)
         self.addEdge(v,u,weight)
         
-    def addEdgesAuto(self):
+    def addEdgesAll(self):
         """
         determines automatically weight for all edges between all vertices,
-        using the eclidean distance as value0
+        using the eclidean distance as value.
         """
         for i in range(len(self.vertices)):
             for j in range(len(self.vertices)):
@@ -99,6 +102,22 @@ class Graph:
                     dist = sqrt((yb-ya)**2+(xb-xa)**2)
                     self.addEdgeFromCoords([xa,ya],[xb,yb],dist)
                     self.addEdgeFromCoords([xb,yb],[xa,ya],dist)
+                    
+    def addEdgesDelaunay(self):
+        """
+        determines automatically weight for edges defined by the Delaunay's 
+        triangulation.
+        """
+        x = [k[0] for k in self.vertices]
+        y = [k[1] for k in self.vertices]
+        points = np.array([x,y]).T
+        tri = Delaunay(points)
+        plt.triplot(points[:,0], points[:,1],tri.simplices.copy(),c='#BBBBBB')
+        triangles = points[tri.simplices]
+        for summit in triangles :
+            self.addEdgeFromCoords(summit[0].tolist(),summit[1].tolist())
+            self.addEdgeFromCoords(summit[1].tolist(),summit[2].tolist())
+            self.addEdgeFromCoords(summit[2].tolist(),summit[0].tolist())
     
     def getAssociatedNumber(self,x,y):
         """
@@ -169,6 +188,10 @@ class Graph:
             
         
     def draw_arrow(self,x,y,θ,e,w,col):
+        """
+        symbolizes the wind angle and speed on the graphical representation by 
+        an oriented arrow of variable width.
+        """
         M1=np.array([[0,6*e,5*e,6*e,5*e],[0,0,-e,0,e]])
         M=np.append(M1,[[1,1,1,1,1]],axis=0)
         R=np.array([[cos(θ),-sin(θ),x],[sin(θ),cos(θ),y],[0,0,1]])
@@ -177,7 +200,9 @@ class Graph:
         
     def solveRandom(self,nb_of_tour=1000):
         """
-        solver based on a random strategy.
+        solver based on a random strategy. The graph is assumed to have all its 
+        vertices linked one to each other (so it is not necessarily a complete 
+        graph).
         """
         n = len(self.vertices)
         self.path = random.sample(range(n),n)
@@ -194,7 +219,9 @@ class Graph:
                 
     def solveLoop(self,nb_of_tour=10):
         """
-        solver based on a loop strategy.
+        solver based on a loop strategy. The graph is assumed to have all its 
+        vertices linked one to each other (so it is not necessarily a complete 
+        graph).
         """
         n = len(self.vertices)
         self.path = random.sample(range(n),n)
@@ -212,8 +239,9 @@ class Graph:
 
     def solveNearestNeighbour(self):
         """
-        solver based on a nearest neighbour stregy, assuming edges are defined
-        accordingly to the Delaunay's triangulation.
+        solver based on a nearest neighbour strategy, assuming edges are defined
+        accordingly to the Delaunay's triangulation. In that, the graph is 
+        strongly connected (every vertex is reachable from every other vertex).
         """
         unvisited_vertices = [k for k in range(1,len(self.vertices))]
         visited_vertices = [0]
@@ -228,29 +256,42 @@ class Graph:
             unvisited_vertices.remove(min_vertex)
         self.path = visited_vertices
         print(self.getPathLength(self.path))
+        
+    def solveGenetic(self, temperature=10000, pop_size=15):
+        generation, temp = 0, 1000 
+        population, fitness = [],[]
+        n = len(self.vertices)
+        #initialiaze population
+        for k in range(pop_size):
+            population.append(random.sample(range(n),n))
+            fitness.append((self.getPathLength(population[k]),k))
+            
+        while temperature > 1000:
+            #parent selection
+            #fitness = sorted(fitness,key = lambda element : element[0])
+            
+        
       
         
 if __name__=='__main__':
     
     G = Graph()
-    G.defineWind(pi/2)
+    G.defineWind(angle=pi/2)
     x,y = [0,1,3,2.5,6,5,4],[0,1,6,1,0.5,4,1]
 
     G.addVertices(x,y)
 
-    #G.addEdgesAuto()
+    #G.addEdgesAll()
     #G.solveRandom(100000)
-    #G.solveLoop(100)
-    #G.plot(gradual=True)
     
-    points = np.array([x,y]).T
-    tri = Delaunay(points)
-    plt.triplot(points[:,0], points[:,1],tri.simplices.copy(),c='#BBBBBB')
-    triangles = points[tri.simplices]
-    for summit in triangles :
-        G.addEdgeFromCoords(summit[0].tolist(),summit[1].tolist())
-        G.addEdgeFromCoords(summit[1].tolist(),summit[2].tolist())
-        G.addEdgeFromCoords(summit[2].tolist(),summit[0].tolist())
-    G.solveNearestNeighbour()
-    G.plot(gradual=True)
+    #G.addEdgesAll()
+    #G.solveLoop(100)
+    
+#    G.addEdgesDelaunay()
+#    G.solveNearestNeighbour()
+    
+    G.addEdgesAll()
+    G.solveGenetic()
+    
+    #G.plot(gradual=True)
     
