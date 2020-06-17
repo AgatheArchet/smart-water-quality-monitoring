@@ -6,11 +6,12 @@ Created on Mon Jun 15 10:32:40 2020
 @author: agathe
 """
 from math import cos,sin,pi,atan2, sqrt
-from itertools import chain
 import matplotlib.pyplot as plt
 import numpy as np
 import random
 from scipy.spatial import Delaunay
+from copy import deepcopy
+import time
 
 class Graph:
     """
@@ -40,6 +41,9 @@ class Graph:
         self.path = None
         self.wind_angle = None
         self.wind_speed = None
+        self.time_solved = None
+        self.solver = None
+        self.path_evolution = []
         
     def defineWind(self,angle,speed=5):
         """
@@ -165,6 +169,9 @@ class Graph:
         """
         gives a graphical representation of the path.
         """
+        plt.figure(figsize=(12,4))
+        if len(self.path_evolution)!=0:
+            plt.subplot(121)
         x,y = [],[]
         for points in self.path:
             x.append(self.vertices[points][0])
@@ -184,8 +191,12 @@ class Graph:
         # wind arrow
         if self.wind_angle != None:
             self.draw_arrow(max_X+0.1*max_X,max_Y+0.1*max_Y,self.wind_angle,0.03*(max_X-min_X),self.wind_speed,'blue')
-        plt.title("Length : "+str(self.getPathLength(self.path)))
-            
+        plt.title('{} in {:.1f} sec : path of {:.2f}'.format(self.solver,self.time_solved,self.getPathLength(self.path)))
+        if len(self.path_evolution)!=0:
+            plt.subplot(122)
+            plt.plot(np.linspace(0,self.time_solved,len(self.path_evolution)),self.path_evolution)
+            plt.title("Evolution of solution as a function of time")
+        plt.show()
         
     def draw_arrow(self,x,y,θ,e,w,col):
         """
@@ -198,31 +209,38 @@ class Graph:
         plt.plot((R@M)[0, :], (R@M)[1, :], col, linewidth = w/2)
         plt.text(x+2*e, y+2*e, "wind", color="blue")
         
-    def solveRandom(self,nb_of_tour=1000):
+    def solveRandom(self,nb_of_tour=1000, show_evolution = False):
         """
         solver based on a random strategy. The graph is assumed to have all its 
         vertices linked one to each other (so it is not necessarily a complete 
         graph).
         """
+        self.solver = "Random"
+        timer = time.time()
         n = len(self.vertices)
         self.path = random.sample(range(n),n)
         length = self.getPathLength(self.path)
         for t in range(0,nb_of_tour):
             print(str(int(100*t/nb_of_tour))+"% length : "+str(length))
             #switch 2 random different vertices to create a new path
-            i,j = sorted(random.sample(range(0,n),2)); 
-            newPath =  self.path[:i]+self.path[j:j+1]+self.path[i+1:j]+ self.path[i:i+1]+self.path[j+1:];
+            i,j = sorted(random.sample(range(0,n),2))
+            newPath =  self.path[:i]+self.path[j:j+1]+self.path[i+1:j]+ self.path[i:i+1]+self.path[j+1:]
             #test of improvement
             if self.getPathLength(newPath) < length:
                 self.path = newPath
                 length = self.getPathLength(newPath)
+                if(show_evolution):
+                    self.path_evolution.append(length)
+        self.time_solved = time.time()-timer
                 
-    def solveLoop(self,nb_of_tour=10):
+    def solveLoop(self,nb_of_tour=10, show_evolution=False):
         """
         solver based on a loop strategy. The graph is assumed to have all its 
         vertices linked one to each other (so it is not necessarily a complete 
         graph).
         """
+        self.solver = "Loop"
+        timer = time.time()
         n = len(self.vertices)
         self.path = random.sample(range(n),n)
         length = self.getPathLength(self.path)
@@ -236,6 +254,9 @@ class Graph:
                     if self.getPathLength(newPath) < length:
                         self.path = newPath
                         length = self.getPathLength(newPath)
+                        if(show_evolution):
+                            self.path_evolution.append(length)
+        self.time_solved = time.time()-timer 
 
     def solveNearestNeighbour(self):
         """
@@ -243,6 +264,8 @@ class Graph:
         accordingly to the Delaunay's triangulation. In that, the graph is 
         strongly connected (every vertex is reachable from every other vertex).
         """
+        self.solver = "Nearest Neighbour"
+        timer = time.time()
         unvisited_vertices = [k for k in range(1,len(self.vertices))]
         visited_vertices = [0]
         while len(unvisited_vertices)!=0:
@@ -255,21 +278,51 @@ class Graph:
             visited_vertices.append(min_vertex)
             unvisited_vertices.remove(min_vertex)
         self.path = visited_vertices
-        print(self.getPathLength(self.path))
+        self.time_solved = time.time()-timer
         
-    def solveGenetic(self, temperature=10000, pop_size=15):
-        generation, temp = 0, 1000 
+    def solveGenetic(self, temperature=100000, pop_size=20, show_evolution = False):
+        self.solver = "Genetic"
+        timer = time.time()
+        generation = 0
+        pop_size = round(pop_size/2)*2
         population, fitness = [],[]
         n = len(self.vertices)
         #initialiaze population
         for k in range(pop_size):
-            population.append(random.sample(range(n),n))
-            fitness.append((self.getPathLength(population[k]),k))
-            
-        while temperature > 1000:
+            population.append(tuple(random.sample(range(n),n)))
+        fitness = [self.getPathLength(p) for p in population]    
+        while temperature > 10:
             #parent selection
-            #fitness = sorted(fitness,key = lambda element : element[0])
-            
+            newPop = []
+            sorted_by_fitness = sorted(zip(fitness, population))
+            population = 2*[element for _, element in sorted_by_fitness][0:int(pop_size/2)]
+            fitness.sort()
+            fitness = 2*fitness[0:int(pop_size/2)]
+            if (show_evolution):
+                if ((generation%10)==0):
+                    self.path_evolution.append(fitness[0])
+            for k in range(pop_size):
+                path = deepcopy(population[k])
+                while(True):
+                    i,j = sorted(random.sample(range(0,n),2))
+                    newPath = path[:i]+path[j:j+1]+path[i+1:j]+path[i:i+1]+path[j+1:]
+                    if self.getPathLength(newPath)<fitness[k]:
+                        newPop.append(newPath)
+                        break
+                    else:
+                        prob = 2.7**(-(self.getPathLength(newPath)-fitness[k])/max(fitness))
+                        if prob>0.98:
+                            newPop.append(newPath)
+                            break
+            temperature = 0.997*temperature
+            generation += 1
+            population = newPop
+            fitness = [self.getPathLength(p) for p in population]
+            print("Time : "+str(int(temperature))+"  Generation: "+str(generation))
+        sorted_by_fitness = sorted(zip(fitness, population))
+        self.path = [element for _, element in sorted_by_fitness][0]
+        self.time_solved = time.time()-timer
+        
         
       
         
@@ -281,17 +334,16 @@ if __name__=='__main__':
 
     G.addVertices(x,y)
 
-    #G.addEdgesAll()
-    #G.solveRandom(100000)
+#    G.addEdgesAll()
+#    G.solveRandom(100000,show_evolution=True)
     
-    #G.addEdgesAll()
-    #G.solveLoop(100)
+#    G.addEdgesAll()
+#    G.solveLoop(100)
     
 #    G.addEdgesDelaunay()
 #    G.solveNearestNeighbour()
     
     G.addEdgesAll()
-    G.solveGenetic()
+    G.solveGenetic(temperature = 1000000, pop_size = 20, show_evolution=True)
     
-    #G.plot(gradual=True)
-    
+    G.plot(gradual=True)

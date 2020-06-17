@@ -67,22 +67,29 @@ if __name__=='__main__':
     
     # Random strategy
 #    G.addEdgesAll()
-#    G.solveRandom(100000)
+#    G.solveRandom(100000,show_evolution=True)
 #    G.plot(gradual=True)
     
     # Loop strategy
 #    G.addEdgesAll()
-#    G.solveLoop(20)
+#    G.solveLoop(30,show_evolution=True)
 #    G.plot(gradual=True)
 
     # Nearest Neighbour Strategy
-    G.addEdgesDelaunay()
-    G.solveNearestNeighbour()
+#    G.addEdgesDelaunay()
+#    G.solveNearestNeighbour()
+#    G.plot(gradual=True)
+    
+    
+    # Genetic algorithm strategy
+    G.addEdgesAll()
+    G.solveGenetic(temperature = 1000000, pop_size = 25, show_evolution=True)
     G.plot(gradual=True)
-    plt.show()    
+    plt.show()        
  
-#TODO : Bitonic tour strategy
 
+#TODO   : 
+    
 #----------------------------------------------------------
 
 # Added constraints : wind direction
@@ -99,7 +106,4 @@ if __name__=='__main__':
 #
 # Fourth approach : genetic algorithms ?           
 
-#TO DO Delaunay ? with https://github.com/jmespadero/pyDelaunay2D
-#tri = Delaunay(points)
-#plt.triplot(points[:,0], points[:,1], tri.simplices.copy())
 
