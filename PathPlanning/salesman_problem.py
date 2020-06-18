@@ -63,11 +63,11 @@ if __name__=='__main__':
     # Creating a graph
     G = Graph()
     G.addVertices(x_list,y_list)
-    G.defineWind(m.pi/2,5)
+    G.defineWind(0,5)
     
     # Random strategy
 #    G.addEdgesAll()
-#    G.solveRandom(100000,show_evolution=True)
+#    G.solveRandom(200000,show_evolution=True)
 #    G.plot(gradual=True)
     
     # Loop strategy
@@ -82,10 +82,10 @@ if __name__=='__main__':
     
     
     # Genetic algorithm strategy
-    G.addEdgesAll()
-    G.solveGenetic(temperature = 1000000, pop_size = 25, show_evolution=True)
-    G.plot(gradual=True)
-    plt.show()        
+#    G.addEdgesAll()
+#    G.solveGenetic(temperature = 1000000, pop_size = 25, show_evolution=True)
+#    G.plot(gradual=True)
+#    plt.show()        
  
 
 #TODO   : 

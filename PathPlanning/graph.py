@@ -41,9 +41,10 @@ class Graph:
         self.path = None
         self.wind_angle = None
         self.wind_speed = None
-        self.time_solved = None
         self.solver = None
+        self.time_solved = None
         self.path_evolution = []
+        self.time_evolution = []
         
     def defineWind(self,angle,speed=5):
         """
@@ -191,11 +192,15 @@ class Graph:
         # wind arrow
         if self.wind_angle != None:
             self.draw_arrow(max_X+0.1*max_X,max_Y+0.1*max_Y,self.wind_angle,0.03*(max_X-min_X),self.wind_speed,'blue')
-        plt.title('{} in {:.1f} sec : path of {:.2f}'.format(self.solver,self.time_solved,self.getPathLength(self.path)))
+        plt.title('Grah solved by {} in {:.1f} sec : path of {:.2f}'.format(self.solver,self.time_solved,self.getPathLength(self.path)))
+        plt.xlabel("X")
+        plt.ylabel("Y")
         if len(self.path_evolution)!=0:
             plt.subplot(122)
-            plt.plot(np.linspace(0,self.time_solved,len(self.path_evolution)),self.path_evolution)
-            plt.title("Evolution of solution as a function of time")
+            plt.plot(self.time_evolution,self.path_evolution)
+            plt.title("Evolution of solution as function of time")
+            plt.xlabel("time (sec)")
+            plt.ylabel("length")
         plt.show()
         
     def draw_arrow(self,x,y,θ,e,w,col):
@@ -231,6 +236,10 @@ class Graph:
                 length = self.getPathLength(newPath)
                 if(show_evolution):
                     self.path_evolution.append(length)
+                    self.time_evolution.append(time.time()-timer)
+        if(show_evolution):
+            self.path_evolution.append(length)
+            self.time_evolution.append(time.time()-timer)
         self.time_solved = time.time()-timer
                 
     def solveLoop(self,nb_of_tour=10, show_evolution=False):
@@ -256,6 +265,10 @@ class Graph:
                         length = self.getPathLength(newPath)
                         if(show_evolution):
                             self.path_evolution.append(length)
+                            self.time_evolution.append(time.time()-timer)
+        if(show_evolution):
+            self.path_evolution.append(length)
+            self.time_evolution.append(time.time()-timer)
         self.time_solved = time.time()-timer 
 
     def solveNearestNeighbour(self):
@@ -281,6 +294,11 @@ class Graph:
         self.time_solved = time.time()-timer
         
     def solveGenetic(self, temperature=100000, pop_size=20, show_evolution = False):
+        """
+        solver based on a genetic strategy. The graph is assumed to have all its 
+        vertices linked one to each other (so it is not necessarily a complete 
+        graph).
+        """
         self.solver = "Genetic"
         timer = time.time()
         generation = 0
@@ -301,26 +319,32 @@ class Graph:
             if (show_evolution):
                 if ((generation%10)==0):
                     self.path_evolution.append(fitness[0])
+                    self.time_evolution.append(time.time()-timer)
+            # mutation
             for k in range(pop_size):
                 path = deepcopy(population[k])
                 while(True):
                     i,j = sorted(random.sample(range(0,n),2))
                     newPath = path[:i]+path[j:j+1]+path[i+1:j]+path[i:i+1]+path[j+1:]
-                    if self.getPathLength(newPath)<fitness[k]:
+                    if self.getPathLength(newPath)<=fitness[k]:
                         newPop.append(newPath)
                         break
                     else:
+                        # accept the rejected children with a probability of 0.98
                         prob = 2.7**(-(self.getPathLength(newPath)-fitness[k])/max(fitness))
-                        if prob>0.98:
+                        if prob>0.987:
                             newPop.append(newPath)
                             break
-            temperature = 0.997*temperature
+            temperature = 0.99*temperature
             generation += 1
             population = newPop
             fitness = [self.getPathLength(p) for p in population]
             print("Time : "+str(int(temperature))+"  Generation: "+str(generation))
         sorted_by_fitness = sorted(zip(fitness, population))
         self.path = [element for _, element in sorted_by_fitness][0]
+        if(show_evolution):
+            self.path_evolution.append(self.getPathLength(self.path))
+            self.time_evolution.append(time.time()-timer)
         self.time_solved = time.time()-timer
         
         
@@ -338,12 +362,14 @@ if __name__=='__main__':
 #    G.solveRandom(100000,show_evolution=True)
     
 #    G.addEdgesAll()
-#    G.solveLoop(100)
+#    G.solveLoop(100,show_evolution=True)
     
-#    G.addEdgesDelaunay()
-#    G.solveNearestNeighbour()
+    G.addEdgesDelaunay()
+    G.solveNearestNeighbour()
     
-    G.addEdgesAll()
-    G.solveGenetic(temperature = 1000000, pop_size = 20, show_evolution=True)
+#    G.addEdgesAll()
+#    G.solveGenetic(temperature = 1000000, pop_size = 20, show_evolution=True)
     
     G.plot(gradual=True)
+    
+    
