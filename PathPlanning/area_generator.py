@@ -23,6 +23,10 @@ class Area:
         [latitude,longitude].
     shape : string
         general shape of the path wanted.
+    center : tuple of integer
+        center of area if it has a circle shape
+    angle division : integer (power of two)
+        precision for circle shaped area
     
     Methods
     -------

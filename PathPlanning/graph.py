@@ -30,9 +30,18 @@ class Graph:
         the list with the optimal known path
     wind_angle : integer betwenn 0 and 2 pi rad
         current direction of the wind, with respect to unit circle convention
-        north wind : 3pi rad / east wind : 0 rad / south wind : pi rad
+        north wind : pi/2 rad / west wind : 0 rad / south wind : 3pi/2 rad.
     wind_speed : float
-        current speed of the in m/s
+        current speed of the in m/s.
+    solver : string
+        the algorithm used to find the optimal path.
+    time_solved : float
+        the total time needed to find the optimal path.
+    path_evolution : list of float
+        all steps of the path optimization, for graphical representation.
+    time_evolution : list of float
+        all steps of the time each time the path's length is reduced, for 
+        graphical representation.
     
     """
     def __init__(self):
@@ -123,6 +132,12 @@ class Graph:
             self.addEdgeFromCoords(summit[0].tolist(),summit[1].tolist())
             self.addEdgeFromCoords(summit[1].tolist(),summit[2].tolist())
             self.addEdgeFromCoords(summit[2].tolist(),summit[0].tolist())
+            
+    def addObstacleatCoords(self,x,y,radius):
+        """
+        changes to "infinte" value of all edges passing through the obstacle.
+        """
+        #TODO : add a condition 
     
     def getAssociatedNumber(self,x,y):
         """
@@ -358,18 +373,19 @@ if __name__=='__main__':
 
     G.addVertices(x,y)
 
-#    G.addEdgesAll()
-#    G.solveRandom(100000,show_evolution=True)
+    G.addEdgesAll()
+    G.changeNodeIntoObstacle(5)
+    G.solveRandom(100000,show_evolution=True)
     
 #    G.addEdgesAll()
 #    G.solveLoop(100,show_evolution=True)
     
-    G.addEdgesDelaunay()
-    G.solveNearestNeighbour()
+#    G.addEdgesDelaunay()
+#    G.solveNearestNeighbour()
     
 #    G.addEdgesAll()
 #    G.solveGenetic(temperature = 1000000, pop_size = 20, show_evolution=True)
     
     G.plot(gradual=True)
     
-    
+    #TODO : modify algorithms so it works with circle areas

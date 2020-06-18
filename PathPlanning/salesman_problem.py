@@ -66,9 +66,9 @@ if __name__=='__main__':
     G.defineWind(0,5)
     
     # Random strategy
-#    G.addEdgesAll()
-#    G.solveRandom(200000,show_evolution=True)
-#    G.plot(gradual=True)
+    G.addEdgesAll()
+    G.solveRandom(200000,show_evolution=True)
+    G.plot(gradual=True)
     
     # Loop strategy
 #    G.addEdgesAll()
@@ -88,7 +88,6 @@ if __name__=='__main__':
 #    plt.show()        
  
 
-#TODO   : 
     
 #----------------------------------------------------------
 
