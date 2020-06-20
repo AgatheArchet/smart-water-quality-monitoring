@@ -23,8 +23,11 @@ def f(x,u):
         δs = pi + ψ_ap
     else :
         δs = -sign(sin(ψ_ap))*δsmax
+    # rudder force
     fr = p4*v*sin(δr)
+    # sail force
     fs = p3*a_ap* sin(δs - ψ_ap)
+    # model equations
     dx=v*cos(θ) + p0*awind*cos(ψ)
     dy=v*sin(θ) + p0*awind*sin(ψ)
     dv=(fs*sin(δs)-fr*p10*sin(δr)-p1*v**2)/p8
@@ -120,18 +123,26 @@ gamma = pi/4  # closed hauled angle for the no-go zone
 deltarmax = 1 # maximal rudder angle
 beta = pi/4   # angle of the sail in crosswind 
 
-a = array([[-100],[-100]])   
-b = array([[100],[100]])
-                  
+A = array([[-80],[-80]])   
+B = array([[50],[50]])
+C = array([[-80],[0]])
+D = array([[25],[-50]])
+path = [A,B,C,D]
+a,b = path[0], points[1]
+
 ax=init_figure(-100,100,-100,100)
 
 for t in arange(0,10000,0.1):
-    plt.plot([a[0,0],b[0,0]],[a[1,0],b[1,0]],'--r')
-    plt.plot([a[0,0],b[0,0]],[a[1,0],b[1,0]],'co')
     u=controler(x,a,b)
     xdot,δs=f(x,u)
     x = x + dt*xdot
-    if t%1==0:
+    if t%2==0:
+        plt.plot([a[0,0],b[0,0]],[a[1,0],b[1,0]],'--r')
+        plt.plot([i[0,0] for i in path],[j[1,0] for j in path],'co')
         draw_sailboat(x,δs,u[0,0],ψ,awind)
         clear(ax)
+    if ((b-a).T)@(b-array([[x[0,0]],[x[1,0]]]))<0:
+        path.append(path.pop(0))
+        a,b = a,b = path[0], path[1]
+
     
