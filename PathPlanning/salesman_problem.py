@@ -14,6 +14,8 @@ import math as m, numpy as np
 from area_generator import Area
 from graph import Graph
 import matplotlib.pyplot as plt
+from boat import *
+
 
 def readData(filename):
     lat, lon = [],[] 
@@ -65,44 +67,44 @@ if __name__=='__main__':
     G.addVertices(x_list,y_list)
     G.defineWind(0,5)
     
+#-------------Uncomment the solving strategy---------------------
+    
     # Random strategy
-    G.addEdgesAll()
-    G.solveRandom(200000,show_evolution=True)
-    G.plot(gradual=True)
+#    G.addEdgesAll()
+#    G.solveRandom(200000,show_evolution=True)
+#    G.plot(gradual=True)
     
     # Loop strategy
 #    G.addEdgesAll()
 #    G.solveLoop(30,show_evolution=True)
 #    G.plot(gradual=True)
 
-    # Nearest Neighbour Strategy
-#    G.addEdgesDelaunay()
-#    G.solveNearestNeighbour()
-#    G.plot(gradual=True)
+    # Nearest Neighbour Strategy with a Delaunay triangulation
+    G.addEdgesDelaunay()
+    G.solveNearestNeighbour()
+    G.plot(gradual=True)
     
     
     # Genetic algorithm strategy
 #    G.addEdgesAll()
 #    G.solveGenetic(temperature = 1000000, pop_size = 25, show_evolution=True)
 #    G.plot(gradual=True)
-#    plt.show()        
- 
+#    plt.show()   
 
+    mapPath = [np.array([[list(G.vertices[k])[0]],[list(G.vertices[k])[1]]]) for k in G.path]
+
+
+    # Constructing the autonomous sailboats
+    x0= array([[-0.1,-0.1,-3,1,0]]).T  #x=(x,y,θ,v,w)
+    a_tw = 2    # true wind force
+    ψ_tw = -2   # true wind angle
+    r = 10      # maximale acceptable distance from target line
+    ζ = pi/4    # closed hauled angle for the no-go zone
+    δrmax = 1   # maximal rudder angle
+    β = pi/4    # angle of the sail in crosswind 
     
-#----------------------------------------------------------
-
-# Added constraints : wind direction
-
-#First approach : Delaunay triangulation to limit possible neighbours
-#                 nearest neighbour strategy
-
-#Second approch : random path at begining
-#                  generate a new path by switching two cities
-#                  select the best path between the two
-#                   do it again
-   
-# Third approach : Bitonic tour strategy     
-#
-# Fourth approach : genetic algorithms ?           
-
-
+    dt=0.1
+    ax=init_figure(-0.2,0.2,-0.2,0.2)
+    B = Boat(x0,a_tw, ψ_tw, r, ζ, δrmax, β)
+    for t in arange(0,10000,dt):
+        B.nextStep(mapPath,dt,showTrajectory=True)

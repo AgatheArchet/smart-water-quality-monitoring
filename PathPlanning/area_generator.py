@@ -11,7 +11,7 @@ import numpy as np
 
 class Area:
     """
-    A class to caracterize the measurement area where the autonomous sailboat 
+    A class that caracterizes the measurement area where the autonomous sailboat 
     must go.
     
     Attributes
@@ -114,7 +114,7 @@ if __name__=='__main__':
 #    A.generateMap()
 
     center, beginning = [1,1],[4,4]
-    C = Area(40,beginning,beginning,"circle",center, angle_division=16)
+    C = Area(65,beginning,beginning,"circle",center, angle_division=16)
     C.placeMeasurementPoints()
     C.generateFile()
     C.generateMap()
