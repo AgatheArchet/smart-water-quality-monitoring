@@ -59,15 +59,16 @@ if __name__=='__main__':
     
     # Reading points from the file
     begining,lat,lon = readData("points.txt")
-    x_list,y_list = LatLonToUTMXY(lat,lon)
-    x_list,y_list = normalize(x_list,y_list)
+    x_list_utm,y_list_utm = LatLonToUTMXY(lat,lon)
+    x_list,y_list = normalize(x_list_utm,y_list_utm)
     
     # Creating a graph
     G = Graph()
     G.addVertices(x_list,y_list)
-    G.defineWind(0,5)
+    wind_angle, wind_speed = 0, 2
+    G.defineWind(wind_angle,wind_speed)
     
-#-------------Uncomment the solving strategy---------------------
+#-----------------Uncomment the solving strategy-------------------------------
     
     # Random strategy
 #    G.addEdgesAll()
@@ -89,22 +90,38 @@ if __name__=='__main__':
 #    G.addEdgesAll()
 #    G.solveGenetic(temperature = 1000000, pop_size = 25, show_evolution=True)
 #    G.plot(gradual=True)
-#    plt.show()   
+    
+#-----------------------------------------------------------------------------
 
-    mapPath = [np.array([[list(G.vertices[k])[0]],[list(G.vertices[k])[1]]]) for k in G.path]
-
-
-    # Constructing the autonomous sailboats
-    x0= array([[-0.1,-0.1,-3,1,0]]).T  #x=(x,y,θ,v,w)
-    a_tw = 2    # true wind force
-    ψ_tw = -2   # true wind angle
+    # Converting the path for the map
+    mapPath = [np.array([[200*list(G.vertices[k])[0]],[200*list(G.vertices[k])[1]]]) for k in G.path]
+    start = mapPath[0]
+    end = mapPath[-1]
+    
+    # Constructing the autonomous sailboat
+    x0= array([[-5,-5,-3,0.2,0]]).T  #x=(x,y,θ,v,w)
+    a_tw = wind_speed    # true wind force
+    ψ_tw = wind_angle    # true wind angle
     r = 10      # maximale acceptable distance from target line
     ζ = pi/4    # closed hauled angle for the no-go zone
     δrmax = 1   # maximal rudder angle
     β = pi/4    # angle of the sail in crosswind 
-    
-    dt=0.1
-    ax=init_figure(-0.2,0.2,-0.2,0.2)
     B = Boat(x0,a_tw, ψ_tw, r, ζ, δrmax, β)
-    for t in arange(0,10000,dt):
-        B.nextStep(mapPath,dt,showTrajectory=True)
+    
+    # Matplotlib parameters    
+    t = 0
+    dt = 0.1
+    ax=init_figure(-10,210,-10,210)
+    measuring = True
+    last_point_reached = False
+
+
+    while measuring:
+        B.nextStep(ax,mapPath,dt,showTrajectory=True,plot_frequence=3)        
+        if not(last_point_reached):
+            last_point_reached = ((end[0,0]==mapPath[0][0,0]) and (end[1,0]==mapPath[0][1,0]))
+        else :
+            if ((start[0,0]==mapPath[0][0,0]) and (start[1,0]==mapPath[0][1,0])):
+                measuring = False
+                break;
+    plt.show()

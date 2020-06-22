@@ -77,6 +77,7 @@ class Boat():
         self.u = array([[0],[0]])
         self.trajectory = []
         self.q = -1.0
+        self.t = 0
         
     def draw_sailboat(self,δs,δr, showTrajectory=False):
         """
@@ -98,7 +99,7 @@ class Boat():
         plot2D(R@Rr@rudder,'red'); 
         if(showTrajectory):
             self.trajectory.append((x[0],x[1]))
-            plt.plot([i[0] for i in self.trajectory],[j[1] for j in self.trajectory],'--c')
+            plt.plot([i[0] for i in self.trajectory],[j[1] for j in self.trajectory],'--',color="yellowgreen")
             
     def f(self):
         """
@@ -157,11 +158,11 @@ class Boat():
         δr = 2*(δrmax/pi)*arctan(tan((θ-θbar)/2))
         # sail control 
         δsmax = (pi/2)*((cos(ψ_tw-θbar)+1)/2)**(log(pi/(2*β))/log(2))
-        B.u = array([[δr],[δsmax]])
+        self.u = array([[δr],[δsmax]])
         
 
     
-    def nextStep(self,path,dt=0.1,showTrajectory=False):
+    def nextStep(self,ax,path,dt=0.1,showTrajectory=False,plot_frequence=2):
         """
         manages automatically the evolution of the sailboat over time.
         """
@@ -169,8 +170,9 @@ class Boat():
         self.controller(a,b)
         xdot,δs = self.f()
         self.x = self.x + dt*xdot
-        if t%2==0:
-            plt.plot([a[0,0],b[0,0]],[a[1,0],b[1,0]],'--r')
+        self.t += dt
+        if round(self.t,2)%plot_frequence==0:
+            plt.plot([a[0,0],b[0,0]],[a[1,0],b[1,0]],linestyle='dotted',color="red")
             plt.plot([i[0,0] for i in path],[j[1,0] for j in path],'co')
             self.draw_sailboat(δs,self.u[0,0],showTrajectory)
             clear(ax)
@@ -190,7 +192,7 @@ def plot2D(M,col='black',w=1):
     plt.plot(M[0, :], M[1, :], col, linewidth = w) 
     
 def init_figure(xmin,xmax,ymin,ymax): 
-    fig = plt.figure(2)
+    fig = plt.figure(3)
     ax = fig.add_subplot(111, aspect='equal')	
     ax.xmin=xmin
     ax.xmax=xmax
@@ -230,5 +232,4 @@ if __name__=='__main__':
     B = Boat(x0,a_tw, ψ_tw, r, ζ, δrmax, β)
     
     for t in arange(0,10000,dt):
-        B.nextStep(path,dt,showTrajectory=True)
-
+        B.nextStep(ax,path,dt,showTrajectory=True)

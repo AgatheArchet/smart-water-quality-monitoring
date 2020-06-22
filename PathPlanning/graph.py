@@ -13,6 +13,8 @@ from scipy.spatial import Delaunay
 from copy import deepcopy
 import time
 
+from area_generator import *
+
 class Graph:
     """
     A class to modelize an asymetrical directed graph of various verticies.
@@ -119,9 +121,10 @@ class Graph:
                     
     def addEdgesDelaunay(self):
         """
-        determines automatically weight for edges defined by the Delaunay's 
+        determines automatically weight for edges defined by a Delaunay
         triangulation.
         """
+        plt.figure(1)
         x = [k[0] for k in self.vertices]
         y = [k[1] for k in self.vertices]
         points = np.array([x,y]).T
@@ -132,12 +135,23 @@ class Graph:
             self.addEdgeFromCoords(summit[0].tolist(),summit[1].tolist())
             self.addEdgeFromCoords(summit[1].tolist(),summit[2].tolist())
             self.addEdgeFromCoords(summit[2].tolist(),summit[0].tolist())
+        plt.title("Delaunay triangulation for the associated map")
             
-    def addObstacleatCoords(self,x,y,radius):
+    def addObstacleAtCoords(self,x,y,radius):
         """
         changes to "infinte" value of all edges passing through the obstacle.
         """
-        #TODO : add a condition 
+        for key in G.edges.keys():
+            x1,y1 = self.vertices[key[0]]
+            x2,y2 = self.vertices[key[1]]
+            a = (y2-y1)/(x2-x1)
+            b = 1
+            c = y1-x1
+            dist = ((abs(a*x+b*y+c))/sqrt(a*a+b*b)) 
+            if (radius >= dist): 
+                print("Touch") 
+            else: 
+                print("Outside")
     
     def getAssociatedNumber(self,x,y):
         """
@@ -185,7 +199,7 @@ class Graph:
         """
         gives a graphical representation of the path.
         """
-        plt.figure(figsize=(12,4))
+        plt.figure(1,figsize=(12,4))
         if len(self.path_evolution)!=0:
             plt.subplot(121)
         x,y = [],[]
@@ -216,7 +230,6 @@ class Graph:
             plt.title("Evolution of solution as function of time")
             plt.xlabel("time (sec)")
             plt.ylabel("length")
-        plt.show()
         
     def draw_arrow(self,x,y,θ,e,w,col):
         """
@@ -297,11 +310,11 @@ class Graph:
         unvisited_vertices = [k for k in range(1,len(self.vertices))]
         visited_vertices = [0]
         while len(unvisited_vertices)!=0:
-            print(str(int(100*len(visited_vertices)/len(self.vertices)))+" %")
+            #print(str(int(100*len(visited_vertices)/len(self.vertices)))+" %")
             min_vertex = visited_vertices[-1]
             vertex = visited_vertices[-1]
             for neighbour in unvisited_vertices:
-                if self.getDist(vertex,neighbour) < self.getDist(vertex,min_vertex):
+                if self.getDist(vertex,neighbour) <= self.getDist(vertex,min_vertex):
                     min_vertex = neighbour
             visited_vertices.append(min_vertex)
             unvisited_vertices.remove(min_vertex)
@@ -321,7 +334,7 @@ class Graph:
         population, fitness = [],[]
         n = len(self.vertices)
         #initialiaze population
-        for k in range(pop_size):
+        for k in range(int(pop_size)):
             population.append(tuple(random.sample(range(n),n)))
         fitness = [self.getPathLength(p) for p in population]    
         while temperature > 10:
@@ -336,7 +349,7 @@ class Graph:
                     self.path_evolution.append(fitness[0])
                     self.time_evolution.append(time.time()-timer)
             # mutation
-            for k in range(pop_size):
+            for k in range(int(pop_size)):
                 path = deepcopy(population[k])
                 while(True):
                     i,j = sorted(random.sample(range(0,n),2))
@@ -369,23 +382,36 @@ if __name__=='__main__':
     
     G = Graph()
     G.defineWind(angle=pi/2)
+    
+    #square
     x,y = [0,1,3,2.5,6,5,4],[0,1,6,1,0.5,4,1]
+    
+    #round
+#    center, beginning = [1,1],[4,4]
+#    C = Area(65,beginning,beginning,"circle",center, angle_division=16)
+#    C.placeMeasurementPoints()
+#    x,y = C.points_lat, C.points_lon
 
     G.addVertices(x,y)
 
     G.addEdgesAll()
-    G.changeNodeIntoObstacle(5)
-    G.solveRandom(100000,show_evolution=True)
+    G.addObstacleAtCoords(x=1,y=2,radius=0.5)
+    fig, ax = plt.subplots()
+    ax.add_artist(plt.Circle((1,2),0.5))
+    
+#    G.addEdgesAll()
+#    G.solveRandom(100000,show_evolution=True)
     
 #    G.addEdgesAll()
 #    G.solveLoop(100,show_evolution=True)
     
-#    G.addEdgesDelaunay()
-#    G.solveNearestNeighbour()
+    G.addEdgesDelaunay()
+    G.solveNearestNeighbour()
     
 #    G.addEdgesAll()
 #    G.solveGenetic(temperature = 1000000, pop_size = 20, show_evolution=True)
     
     G.plot(gradual=True)
-    
+    plt.show()
+
     #TODO : modify algorithms so it works with circle areas
