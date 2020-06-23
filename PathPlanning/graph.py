@@ -137,22 +137,64 @@ class Graph:
             self.addEdgeFromCoords(summit[2].tolist(),summit[0].tolist())
         plt.title("Delaunay triangulation for the associated map")
             
-    def addObstacleAtCoords(self,x,y,radius):
+    def addObstacleAtCoords(self,x,y,r):
         """
         changes to "infinte" value of all edges passing through the obstacle.
+        E is the starting point of the ray => (x1,y1)
+        L is the end point of the ray => (x2,y2)
+        C is the center of the circle => (x,y)
+        r is the radius of the circle
+        The intersection is found by the parametric equations:
+        Px = Ex + tdx      and      Py = Ey + tdy
+        plugged into the circle equation :
+        (x - h)2 + (y - k)2 = r2,  with (h,k) = center of circle.
+        This leads to solving the following quadratic equation :
+        t2*( d DOT d ) + 2t*( f DOT d ) + ( f DOT f - r2 ) = 0
         """
+
         for key in G.edges.keys():
             x1,y1 = self.vertices[key[0]]
             x2,y2 = self.vertices[key[1]]
-            a = (y2-y1)/(x2-x1)
-            b = 1
-            c = y1-x1
-            dist = ((abs(a*x+b*y+c))/sqrt(a*a+b*b)) 
-            if (radius >= dist): 
-                print("Touch") 
-            else: 
-                print("Outside")
-    
+            # Direction vector of ray, from start to end
+            d = np.array([x2-x1,y2-y1]) 
+            # Vector from center sphere to ray start 
+            f = np.array([x1-x,y1-y])
+            
+            a = d@(d.T)
+            b = 2*f@(d.T)
+            c = f@(f.T) - r*r
+            discriminant = b*b -4*a*c
+            if (discriminant<0):
+                print("no intersection")
+            else :
+                discriminant = sqrt(discriminant)
+                t1 = (-b - discriminant)/(2*a);
+                t2 = (-b + discriminant)/(2*a);
+                print("ok   ("+str(x1)+","+str(y1)+")  ("+str(x2)+","+str(y2)+") + t1: "+str(t1)+"  t2: "+str(t2))
+                if ((t1>1 and t2>1) or (t1<0 and t2<0)) : # the circle does not touch the circle
+                    pass
+                elif (t1<0 and t2>1): # the segment is completely inside the circle
+                    print(key)
+                    self.edges[key] = float('inf')
+                else:
+                    inter2_x = x1 + t2*d[0] 
+                    inter2_y = y1 + t2*d[1] 
+                    inter1_x = x1 + t1*d[0] 
+                    inter1_y = y1 + t1*d[1]
+                    print(key)
+                    self.edges[key] = float('inf')
+                    if t1<0 : # one intersection with the segment
+                        print(inter2_x,inter2_y)
+                        #return (inter2_x,inter2_y)
+                        plt.plot(inter2_x,inter2_y)
+                    if t2>1:  # one intersection with the segment
+                        print(inter1_x,inter1_y)
+                        #return(inter1_x,inter1_y)
+                        plt.plot(inter1_x,inter1_y)
+                    else:   # two intersections with the segment
+                        print(inter1_x,inter1_y,inter2_x,inter2_y)
+                        #return(inter1_x,inter1_y,inter2_w,inter2_y)
+                        
     def getAssociatedNumber(self,x,y):
         """
         finds the index of the vertex in the graph's list, directly with its
@@ -395,7 +437,7 @@ if __name__=='__main__':
     G.addVertices(x,y)
 
     G.addEdgesAll()
-    G.addObstacleAtCoords(x=1,y=2,radius=0.5)
+    G.addObstacleAtCoords(x=1,y=2,r=0.5)
     fig, ax = plt.subplots()
     ax.add_artist(plt.Circle((1,2),0.5))
     
@@ -405,8 +447,8 @@ if __name__=='__main__':
 #    G.addEdgesAll()
 #    G.solveLoop(100,show_evolution=True)
     
-    G.addEdgesDelaunay()
-    G.solveNearestNeighbour()
+#    G.addEdgesDelaunay()
+#    G.solveNearestNeighbour()
     
 #    G.addEdgesAll()
 #    G.solveGenetic(temperature = 1000000, pop_size = 20, show_evolution=True)
