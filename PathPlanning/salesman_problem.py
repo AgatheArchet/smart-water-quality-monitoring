@@ -73,23 +73,23 @@ if __name__=='__main__':
     # Random strategy
 #    G.addEdgesAll()
 #    G.solveRandom(200000,show_evolution=True)
-#    G.plot(gradual=True)
+#    G.plotPath(gradual=True)
     
     # Loop strategy
 #    G.addEdgesAll()
 #    G.solveLoop(30,show_evolution=True)
-#    G.plot(gradual=True)
+#    G.plotPath(gradual=True)
 
     # Nearest Neighbour Strategy with a Delaunay triangulation
     G.addEdgesDelaunay()
     G.solveNearestNeighbour()
-    G.plot(gradual=True)
+    G.plotPath(gradual=True)
     
     
     # Genetic algorithm strategy
 #    G.addEdgesAll()
 #    G.solveGenetic(temperature = 1000000, pop_size = 25, show_evolution=True)
-#    G.plot(gradual=True)
+#    G.plotPath(gradual=True)
     
 #-----------------------------------------------------------------------------
 

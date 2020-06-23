@@ -12,6 +12,7 @@ import random
 from scipy.spatial import Delaunay
 from copy import deepcopy
 import time
+from shapely.geometry import Polygon, LinearRing
 
 from area_generator import *
 
@@ -195,6 +196,35 @@ class Graph:
                         print(inter1_x,inter1_y,inter2_x,inter2_y)
                         #return(inter1_x,inter1_y,inter2_w,inter2_y)
                         
+    def addPolygoneObstacleAtCoords(self,list_x,list_y):
+        """
+        proposes an alternative path if one of the vertex touches the obstacle.
+        
+        """
+        plt.figure(0)
+        safety_distance = 0.2
+        centroid = (sum(list_x) / len(list_x), sum(list_y) / len(list_y))
+        new_poly = []
+        n = len(list_x)
+        for i in range(n):
+            xa,ya = list_x[i], list_y[i]
+            angle1 = atan2(list_x[i-1]-xa,list_y[i-1]-ya)
+            angle2 = atan2(list_x[(i+1)%n]-xa,list_y[(i+1)%n]-ya)
+            middle_angle = (angle1+angle2)/2
+            print(middle_angle)
+            plt.plot(xa+safety_distance*cos(middle_angle),ya+safety_distance*sin(middle_angle), marker='o')
+#            new_poly.append((xnew,ynew))
+#        for key in G.edges.keys():
+#            x1,y1 = self.vertices[key[0]]
+#            x2,y2 = self.vertices[key[1]]
+            
+        
+        plt.plot(list_x + [list_x[0]], list_y + [list_y[0]], color ="black")
+        plt.plot(centroid[0],centroid[1],marker='o',color="red")
+        plt.plot([p[0] for p in new_poly],[p[1] for p in new_poly], marker = 'o')
+        
+
+                        
     def getAssociatedNumber(self,x,y):
         """
         finds the index of the vertex in the graph's list, directly with its
@@ -236,8 +266,19 @@ class Graph:
         else:
             value += self.getDist(path[-1],path[0])
         return(value)
+        
+    def plot(self):
+        plt.figure(0,figsize=(12,4))
+        for key in self.edges.keys():
+            x1,y1 = self.vertices[key[0]]
+            x2,y2 = self.vertices[key[1]]
+            plt.plot([x1,x2],[y1,y2],linestyle='dotted',color="lightgrey")
+            plt.plot(x1,y1,marker='o',color="cyan")
+            plt.plot(x2,y2,marker='o',color="cyan")
+        plt.title("Graph before resolution")
+            
          
-    def plot(self,gradual=False):
+    def plotPath(self,gradual=False):
         """
         gives a graphical representation of the path.
         """
@@ -437,9 +478,11 @@ if __name__=='__main__':
     G.addVertices(x,y)
 
     G.addEdgesAll()
-    G.addObstacleAtCoords(x=1,y=2,r=0.5)
-    fig, ax = plt.subplots()
-    ax.add_artist(plt.Circle((1,2),0.5))
+#    G.addObstacleAtCoords(x=1,y=2,r=0.5)
+#    fig, ax = plt.subplots()
+#    ax.add_artist(plt.Circle((1,2),0.5))
+    
+    G.addPolygoneObstacleAtCoords([3,3.5,3.5,3],[0.5,0.5,2,2])
     
 #    G.addEdgesAll()
 #    G.solveRandom(100000,show_evolution=True)
@@ -453,7 +496,8 @@ if __name__=='__main__':
 #    G.addEdgesAll()
 #    G.solveGenetic(temperature = 1000000, pop_size = 20, show_evolution=True)
     
-    G.plot(gradual=True)
+#    G.plotPath(gradual=True)
+    G.plot()
     plt.show()
 
     #TODO : modify algorithms so it works with circle areas
