@@ -227,21 +227,50 @@ class Graph:
             x2,y2 = self.vertices[key[1]]
             for i in range(n+1):
                 if doIntersect((x1,y1),(x2,y2),new_poly[i%n],new_poly[(i+1)%n]):
-                    print("intersect !")
                     keysToTransform.append(key)
-        for k in keysToTransform:
-            self.edges.pop(k, None)
-            self.findAlternativePath(k,new_poly)
+#        for k in keysToTransform:
+        k = keysToTransform[1]
+        self.edges.pop(k, None)
+        self.findAlternativePath(k,new_poly)
             
-    def findAlternativePath(self,key,Polycoords):
+    def findAlternativePath(self,key,polyCoords):
         x1,y1 = self.vertices[key[0]]
         x2,y2 = self.vertices[key[1]]
-        n = len(Polycoords)
+        vertex1_altern,vertex2_altern = [],[]
+        proj1, proj2 = 0,0
+        link1, link2 = None,None
+        n = len(polyCoords)
+        # findind all accessible vertices of the polygon (without passing through it)
         for point in range(n):
-            for point2 in [i for i in range(n) if ((abs(i-point)>1) and (abs(i-point)!=(n-1)))]:
-                if not(doIntersect((x1,x2),Polycoords[point],Polycoords[point2],Polycoords[(point2+1)%(n)])):
-                    print((x1,x2),Polycoords[point])
-                    #TODO : to complete
+            intersection1, intersection2 = False, False
+            for point2 in [i for i in range(n) if (i!=point and i!=(point-1)%n)]:
+                if (doIntersect((x1,y1),polyCoords[point],polyCoords[point2],polyCoords[(point2+1)%(n)])):      
+                    intersection1 = True
+                if (doIntersect((x2,y2),polyCoords[point],polyCoords[point2],polyCoords[(point2+1)%(n)])):      
+                    intersection2 = True
+            if not(intersection1):
+                plt.plot([x1,polyCoords[point][0]],[y1,polyCoords[point][1]],'--',color="green")
+                vertex1_altern.append(point)
+            if not(intersection2):
+                plt.plot([x2,polyCoords[point][0]],[y2,polyCoords[point][1]],'.-',color="orange")
+                vertex2_altern.append(point)
+        for point in vertex1_altern:
+            angle = atan2(polyCoords[point][1]-y1,polyCoords[point][0]-x1)
+            dist = sqrt((polyCoords[point][1]-y1)**2+(polyCoords[point][0]-x1)**2)
+            projection = abs(dist*cos(angle))
+            if projection > proj1:
+                proj1 = projection
+                link1 = point
+        for point in vertex2_altern:
+            angle = atan2(polyCoords[point][1]-y2,polyCoords[point][0]-x2)%pi
+            dist = sqrt((polyCoords[point][1]-y2)**2+(polyCoords[point][0]-x2)**2)
+            projection = abs(dist*cos(angle))
+            if projection > proj2:
+                proj2 = projection
+                link2 = point
+        print(link1,link2)
+        #TODO : analysis with counterwise...
+        
             
                     
     def getAssociatedNumber(self,x,y):
@@ -521,8 +550,14 @@ def doIntersect(p1,q1,p2,q2):
         return True
     # p2 , q2 and q1 are colinear and q1 lies on segment p2q2 
     if ((o4 == 0) and onSegment(p2, q1, q2)): 
-        return Trues
+        return True
     return False
+
+def isClockwise(coords):
+    res = 0
+    for i in range(len(coords)):
+        res += (coords[(i+1)%len(coords)][0]-coords[i][0])*(coords[(i+1)%len(coords)][1]+coords[i][1])
+    return(res>0)
       
         
 if __name__=='__main__':
