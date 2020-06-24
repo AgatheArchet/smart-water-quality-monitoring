@@ -203,28 +203,47 @@ class Graph:
         """
         plt.figure(0)
         safety_distance = 0.2
-        centroid = (sum(list_x) / len(list_x), sum(list_y) / len(list_y))
+        distance  = sqrt(2*(safety_distance**2))
         new_poly = []
         n = len(list_x)
+        # polygone buffering with a safety distance
         for i in range(n):
-            xa,ya = list_x[i], list_y[i]
-            angle1 = atan2(list_x[i-1]-xa,list_y[i-1]-ya)
-            angle2 = atan2(list_x[(i+1)%n]-xa,list_y[(i+1)%n]-ya)
-            middle_angle = (angle1+angle2)/2
-            print(middle_angle)
-            plt.plot(xa+safety_distance*cos(middle_angle),ya+safety_distance*sin(middle_angle), marker='o')
-#            new_poly.append((xnew,ynew))
-#        for key in G.edges.keys():
-#            x1,y1 = self.vertices[key[0]]
-#            x2,y2 = self.vertices[key[1]]
-            
-        
+            xa, ya = list_x[i],list_y[i]
+            vect1= np.array([list_x[i-1]-list_x[i],list_y[i-1]-list_y[i]])
+            vect2= np.array([list_x[(i+1)%n]-list_x[i],list_y[(i+1)%n]-list_y[i]])
+            bissector = np.linalg.norm(vect1)*vect2+np.linalg.norm(vect2)*vect1
+            middle_angle = atan2(bissector[1],bissector[0])+pi
+            #bissector_angle = -(middle_angle-atan2(vect1[1],vect1[0])-pi)%(2*pi)
+            #distance = sqrt(2*safety_distance**2*(1-cos(pi-2*bissector_angle)))
+            xnew = xa+distance*cos(middle_angle)
+            ynew = ya+distance*sin(middle_angle)
+            new_poly.append((xnew,ynew))
         plt.plot(list_x + [list_x[0]], list_y + [list_y[0]], color ="black")
-        plt.plot(centroid[0],centroid[1],marker='o',color="red")
-        plt.plot([p[0] for p in new_poly],[p[1] for p in new_poly], marker = 'o')
-        
-
-                        
+        plt.plot([p[0] for p in new_poly]+[new_poly[0][0]],[p[1] for p in new_poly]+[new_poly[0][1]], marker = 'o')
+        # remove from dictionnary edges that intersect with the obstacle
+        keysToTransform = []
+        for key in G.edges.keys():
+            x1,y1 = self.vertices[key[0]]
+            x2,y2 = self.vertices[key[1]]
+            for i in range(n+1):
+                if doIntersect((x1,y1),(x2,y2),new_poly[i%n],new_poly[(i+1)%n]):
+                    print("intersect !")
+                    keysToTransform.append(key)
+        for k in keysToTransform:
+            self.edges.pop(k, None)
+            self.findAlternativePath(k,new_poly)
+            
+    def findAlternativePath(self,key,Polycoords):
+        x1,y1 = self.vertices[key[0]]
+        x2,y2 = self.vertices[key[1]]
+        n = len(Polycoords)
+        for point in range(n):
+            for point2 in [i for i in range(n) if ((abs(i-point)>1) and (abs(i-point)!=(n-1)))]:
+                if not(doIntersect((x1,x2),Polycoords[point],Polycoords[point2],Polycoords[(point2+1)%(n)])):
+                    print((x1,x2),Polycoords[point])
+                    #TODO : to complete
+            
+                    
     def getAssociatedNumber(self,x,y):
         """
         finds the index of the vertex in the graph's list, directly with its
@@ -458,7 +477,52 @@ class Graph:
             self.time_evolution.append(time.time()-timer)
         self.time_solved = time.time()-timer
         
+def onSegment(p, q, r): 
+    if ( (q[0] <= max(p[0], r[0])) and (q[0] >= min(p[0], r[0])) and 
+           (q[1] <= max(p[1], r[1])) and (q[1] >= min(p[1], r[1]))): 
+        return True
+    return False
         
+def orientation(p, q, r): 
+    """
+    finds the orientation of an ordered triplet ((px,py),(qx,qy),(rx,ry) 
+    Returned values: 
+     0 : Colinear points, 1 : Clockwise points, 2 : Counterclockwise 
+    """  
+    val = (float(q[1] - p[1]) * (r[0] - q[0])) - (float(q[0] - p[0]) * (r[1] - q[1])) 
+    if (val > 0): 
+        return 1 # Clockwise orientation
+    elif (val < 0): 
+        return 2 # Counterclockwise orientation 
+    else: 
+        return 0  # Colinear orientation    
+    
+def doIntersect(p1,q1,p2,q2): 
+    """
+    determines if line1 (p1,q1) and line2(p2,q2) intersect.
+    Each point is at format : p1 = (px1,py1)
+    """  
+    o1 = orientation(p1, q1, p2) 
+    o2 = orientation(p1, q1, q2) 
+    o3 = orientation(p2, q2, p1) 
+    o4 = orientation(p2, q2, q1) 
+    # General case 
+    if ((o1 != o2) and (o3 != o4)): 
+        return True
+    # Special Cases 
+    # p1 , q1 and p2 are colinear and p2 lies on segment p1q1 
+    if ((o1 == 0) and onSegment(p1, p2, q1)): 
+        return True
+    # p1 , q1 and q2 are colinear and q2 lies on segment p1q1 
+    if ((o2 == 0) and onSegment(p1, q2, q1)): 
+        return True
+    # p2 , q2 and p1 are colinear and p1 lies on segment p2q2 
+    if ((o3 == 0) and onSegment(p2, p1, q2)): 
+        return True
+    # p2 , q2 and q1 are colinear and q1 lies on segment p2q2 
+    if ((o4 == 0) and onSegment(p2, q1, q2)): 
+        return Trues
+    return False
       
         
 if __name__=='__main__':
@@ -482,7 +546,7 @@ if __name__=='__main__':
 #    fig, ax = plt.subplots()
 #    ax.add_artist(plt.Circle((1,2),0.5))
     
-    G.addPolygoneObstacleAtCoords([3,3.5,3.5,3],[0.5,0.5,2,2])
+    G.addPolygoneObstacleAtCoords([3,3.25,3.5,3.5,3],[0.5,0,0.5,2,2])
     
 #    G.addEdgesAll()
 #    G.solveRandom(100000,show_evolution=True)
