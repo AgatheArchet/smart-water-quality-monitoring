@@ -12,7 +12,6 @@ import random
 from scipy.spatial import Delaunay
 from copy import deepcopy
 import time
-from shapely.geometry import Polygon, LinearRing
 
 from area_generator import *
 
@@ -50,7 +49,9 @@ class Graph:
     def __init__(self):
         self.vertices = []
         self.edges = {}
+        self.edges_obstacle = {}
         self.path = None
+        self.subpath_obstacle = {}
         self.wind_angle = None
         self.wind_speed = None
         self.solver = None
@@ -79,7 +80,7 @@ class Graph:
         for i in range(len(list_x)):
             self.addSingleVertex(list_x[i],list_y[i])
         
-    def addEdge(self, from_node, to_node, weight):
+    def addEdge(self, from_node, to_node, weight, obstacle=False):
         """
         defines the weight of edge linking "from_node" to "to_node" vertices, 
         and applies a wind penalty to avoid moving in the opposite direction of
@@ -92,7 +93,10 @@ class Graph:
             penalty = self.wind_speed*cos(self.wind_angle-slope)
         else:
             penalty = 0
-        self.edges[(from_node, to_node)] = weight*(1+max(0,penalty))
+        if not(obstacle):
+            self.edges[(from_node, to_node)] = weight*(1+max(0,penalty))
+        else:
+            self.edges_obstacle[(from_node, to_node)] = weight*(1+max(0,penalty))
         #self.edges[(to_node, from_node)] = weight*(1+max(0,-penalty))
         
     def addEdgeFromCoords(self, from_node, to_node, weight=0):
@@ -116,7 +120,7 @@ class Graph:
                 if i!=j:
                     xa,ya = self.vertices[i]
                     xb,yb = self.vertices[j]
-                    dist = sqrt((yb-ya)**2+(xb-xa)**2)
+                    dist = euclideanDistance((xa,ya),(xb,yb))
                     self.addEdgeFromCoords([xa,ya],[xb,yb],dist)
                     self.addEdgeFromCoords([xb,yb],[xa,ya],dist)
                     
@@ -219,7 +223,7 @@ class Graph:
             ynew = ya+distance*sin(middle_angle)
             new_poly.append((xnew,ynew))
         plt.plot(list_x + [list_x[0]], list_y + [list_y[0]], color ="black")
-        plt.plot([p[0] for p in new_poly]+[new_poly[0][0]],[p[1] for p in new_poly]+[new_poly[0][1]], marker = 'o')
+        #plt.plot([p[0] for p in new_poly]+[new_poly[0][0]],[p[1] for p in new_poly]+[new_poly[0][1]], marker = 'o')
         # remove from dictionnary edges that intersect with the obstacle
         keysToTransform = []
         for key in G.edges.keys():
@@ -228,11 +232,12 @@ class Graph:
             for i in range(n+1):
                 if doIntersect((x1,y1),(x2,y2),new_poly[i%n],new_poly[(i+1)%n]):
                     keysToTransform.append(key)
+        keysToTransform = list(set(keysToTransform))
         for k in keysToTransform:
-        
             self.edges.pop(k, None)
-        k = keysToTransform[7]
-        self.findAlternativePath(k,new_poly)
+            length,path_poly = self.findAlternativePath(k,new_poly)
+            self.addEdge(k[0], k[1], length, obstacle=True)
+            self.subpath_obstacle[(k[0], k[1])] = [(new_poly[p][0],new_poly[p][1]) for p in path_poly]
             
     def findAlternativePath(self,key,polyCoords):
         x1,y1 = self.vertices[key[0]]
@@ -250,34 +255,35 @@ class Graph:
                 if (doIntersect((x2,y2),polyCoords[point],polyCoords[point2],polyCoords[(point2+1)%(n)])):      
                     intersection2 = True
             if not(intersection1):
-                plt.plot([x1,polyCoords[point][0]],[y1,polyCoords[point][1]],'--',color="green")
+#                plt.plot([x1,polyCoords[point][0]],[y1,polyCoords[point][1]],'--',color="green")
                 vertex1_altern.append(point)
             if not(intersection2):
-                plt.plot([x2,polyCoords[point][0]],[y2,polyCoords[point][1]],'.-',color="orange")
+#                plt.plot([x2,polyCoords[point][0]],[y2,polyCoords[point][1]],'.-',color="orange")
                 vertex2_altern.append(point)
         # comparing legnth of projection of each vertex on ((x1,y1),(x2,y2)) line.
         for point in vertex1_altern:
             angle = atan2(polyCoords[point][1]-y1,polyCoords[point][0]-x1)
-            dist = sqrt((polyCoords[point][1]-y1)**2+(polyCoords[point][0]-x1)**2)
+            dist =  euclideanDistance(polyCoords[point],(x1,y1))
             projection = abs(dist*cos(angle))
             if projection > proj1:
                 proj1 = projection
                 link1 = point
         for point in vertex2_altern:
             angle = atan2(polyCoords[point][1]-y2,polyCoords[point][0]-x2)%pi
-            dist = sqrt((polyCoords[point][1]-y2)**2+(polyCoords[point][0]-x2)**2)
+            dist = euclideanDistance(polyCoords[point],(x2,y2))
             projection = abs(dist*cos(angle))
             if projection > proj2:
                 proj2 = projection
                 link2 = point
-        #plt.plot((x1,polyCoords[link1][0]),(y1,polyCoords[link1][1]),"red")
-        #plt.plot((x2,polyCoords[link2][0]),(y2,polyCoords[link2][1]),"red")
         if link1 == link2:
-            pass
-            #creation of a path passing by link1 point
+            #add distance on edge
+#            plt.plot((x1,polyCoords[link1][0]),(y1,polyCoords[link1][1]),"red")
+#            plt.plot((x2,polyCoords[link2][0]),(y2,polyCoords[link2][1]),"red")
+            dist = euclideanDistance(polyCoords[link1],(x1,y1)) + euclideanDistance(polyCoords[link1],(x2,y2))
+            return(dist,[link1])
         else:
             # selecting best path on polygon passing by link1
-            lenght_other_path1 = float('inf')
+            length_other_path1 = float('inf')
             other_path1 = []
             for point in vertex2_altern :
                 pathCW, pathCCW = getSliceSequences(link1,point,n)
@@ -287,15 +293,15 @@ class Graph:
                 lccw = sum([euclideanDistance(polyCoords[pathCCW[i]],polyCoords[pathCCW[i+1]]) for i in range(len(pathCCW)-1)])
                 lccw += euclideanDistance((x1,y1),polyCoords[pathCCW[0]])
                 lccw += euclideanDistance((x2,y2),polyCoords[pathCCW[-1]])
-                if lcw<lenght_other_path1 or lccw<lenght_other_path1:
+                if lcw<length_other_path1 or lccw<length_other_path1:
                     if lcw<lccw:
-                        lenght_other_path1 = lcw
+                        length_other_path1 = lcw
                         other_path1 = deepcopy(pathCW)
                     else:
-                        lenght_other_path1 = lccw
+                        length_other_path1 = lccw
                         other_path1 = deepcopy(pathCCW)
             # selecting best path on polygon passing by link2
-            lenght_other_path2 = float('inf')
+            length_other_path2 = float('inf')
             other_path2 = []
             for point in vertex1_altern :
                 pathCW, pathCCW = getSliceSequences(link2,point,n)
@@ -305,28 +311,25 @@ class Graph:
                 lccw = sum([euclideanDistance(polyCoords[pathCCW[i]],polyCoords[pathCCW[i+1]]) for i in range(len(pathCCW)-1)])
                 lccw += euclideanDistance((x2,y2),polyCoords[pathCCW[0]])
                 lccw += euclideanDistance((x1,y1),polyCoords[pathCCW[-1]])
-                if lcw<lenght_other_path2 or lccw<lenght_other_path2:
+                if lcw<length_other_path2 or lccw<length_other_path2:
                     if lcw<lccw:
-                        lenght_other_path2 = lcw
+                        length_other_path2 = lcw
                         other_path2 = deepcopy(pathCW)
                     else:
-                        lenght_other_path2 = lccw
+                        length_other_path2 = lccw
                         other_path2 = deepcopy(pathCCW)
             #selecting the shortest path on polygon
-            if lenght_other_path1 <= lenght_other_path2:
-                plt.plot((x1,polyCoords[link1][0]),(y1,polyCoords[link1][1]),"red")
-                plt.plot([polyCoords[p][0] for p in other_path1],[polyCoords[p][1] for p in other_path1],"red" )
-                plt.plot((polyCoords[other_path1[-1]][0],x2),(polyCoords[other_path1[-1]][1],y2),"red") 
+            if length_other_path1 <= length_other_path2:
+#                plt.plot((x1,polyCoords[link1][0]),(y1,polyCoords[link1][1]),"red")
+#                plt.plot([polyCoords[p][0] for p in other_path1],[polyCoords[p][1] for p in other_path1],"red" )
+#                plt.plot((polyCoords[other_path1[-1]][0],x2),(polyCoords[other_path1[-1]][1],y2),"red")
+                return(length_other_path1,other_path1[::-1])
             else:
-                plt.plot((x2,polyCoords[link2][0]),(y2,polyCoords[link2][1]),"red")
-                plt.plot([polyCoords[p][0] for p in other_path2],[polyCoords[p][1] for p in other_path2],"red" )
-                plt.plot((polyCoords[other_path2[-1]][0],x1),(polyCoords[other_path2[-1]][1],y1),"red") 
-                
+#                plt.plot((x2,polyCoords[link2][0]),(y2,polyCoords[link2][1]),"red")
+#                plt.plot([polyCoords[p][0] for p in other_path2],[polyCoords[p][1] for p in other_path2],"red" )
+#                plt.plot((polyCoords[other_path2[-1]][0],x1),(polyCoords[other_path2[-1]][1],y1),"red")
+                return(length_other_path2,other_path2)
             
-        #TODO : deal with alternative paths
-        
-            
-                    
     def getAssociatedNumber(self,x,y):
         """
         finds the index of the vertex in the graph's list, directly with its
@@ -341,6 +344,8 @@ class Graph:
         """
         if (from_node,to_node) in self.edges.keys():
             value = self.edges[(from_node,to_node)]
+        elif (from_node,to_node) in self.edges_obstacle.keys():
+            value = self.edges_obstacle[(from_node,to_node)]
         else:
             value = float('inf')
         return(value)
@@ -364,9 +369,10 @@ class Graph:
         if self.getDist(path[-1],path[0]) == float('inf'):
             x0,y0 = self.vertices[path[0]]
             xEnd,yEnd = self.vertices[path[-1]]
-            value += sqrt((x0-xEnd)**2+(y0-yEnd)**2)
+            value += euclideanDistance((x0,y0),(xEnd,yEnd))
         else:
             value += self.getDist(path[-1],path[0])
+            
         return(value)
         
     def plot(self):
@@ -377,6 +383,16 @@ class Graph:
             plt.plot([x1,x2],[y1,y2],linestyle='dotted',color="lightgrey")
             plt.plot(x1,y1,marker='o',color="cyan")
             plt.plot(x2,y2,marker='o',color="cyan")
+        for key in self.edges_obstacle.keys():
+            x1,y1 = self.vertices[key[0]]
+            x2,y2 = self.vertices[key[1]]
+            for i in range(0,len(self.subpath_obstacle[(key[0],key[1])])):
+                p1 = self.subpath_obstacle[(key[0],key[1])][i]
+                p2 = self.subpath_obstacle[(key[0],key[1])][(i+1)%len(self.subpath_obstacle[(key[0],key[1])])]
+                plt.plot(p1[0],p1[1],marker='o',color="pink")
+                if i!=len(self.subpath_obstacle[(key[0],key[1])]):
+                    plt.plot([p1[0],p2[0]],[p1[1],p2[1]],linestyle='dotted',color="salmon")
+            plt.plot((x1,self.subpath_obstacle[(key[0],key[1])][i][0]),(y1,self.subpath_obstacle[(key[0],key[1])][i][1]),linestyle='dotted',color="salmon")
         plt.title("Graph before resolution")
             
          
@@ -492,7 +508,7 @@ class Graph:
         """
         self.solver = "Nearest Neighbour"
         timer = time.time()
-        unvisited_vertices = [k for k in range(1,len(self.vertices))]
+        unvisited_vertices = list(range(1,len(self.vertices)))
         visited_vertices = [0]
         while len(unvisited_vertices)!=0:
             #print(str(int(100*len(visited_vertices)/len(self.vertices)))+" %")
@@ -626,11 +642,15 @@ def getSliceSequences(i,j,n):
     liste = list(range(n))
     maxi,mini = max(i,j), min(i,j)
     list1 = liste[mini:maxi+1]
-    list2 = (liste[maxi:] + liste[:mini+1])[::-1]
+    list2 = (liste[maxi:] + liste[:mini+1])
+    if list1[0]!=i:
+        list1 = list1[::-1]
+    if list2[0]!=i:
+        list2 = list2[::-1]
     return(list1,list2)
 
 def euclideanDistance(point1,point2):
-    l = m.sqrt((point1[0]-point2[0])**2+(point1[1]-point2[1])**2)
+    l = sqrt((point1[0]-point2[0])**2+(point1[1]-point2[1])**2)
     return(l)
       
         
@@ -658,18 +678,18 @@ if __name__=='__main__':
     G.addPolygoneObstacleAtCoords([3,3.25,3.5,3.5,3],[0.5,0,0.5,2,2])
     
 #    G.addEdgesAll()
-#    G.solveRandom(100000,show_evolution=True)
+    G.solveRandom(100000,show_evolution=True)
     
 #    G.addEdgesAll()
 #    G.solveLoop(100,show_evolution=True)
     
 #    G.addEdgesDelaunay()
-#    G.solveNearestNeighbour()
+    #G.solveNearestNeighbour()
     
 #    G.addEdgesAll()
 #    G.solveGenetic(temperature = 1000000, pop_size = 20, show_evolution=True)
     
-#    G.plotPath(gradual=True)
+    G.plotPath(gradual=True)
     G.plot()
     plt.show()
 

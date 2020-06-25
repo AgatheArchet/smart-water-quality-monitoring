@@ -117,7 +117,7 @@ if __name__=='__main__':
 
 
     while measuring:
-        B.nextStep(ax,mapPath,dt,showTrajectory=True,plot_frequence=3)        
+        B.nextStep(ax,mapPath,dt,showTrajectory=True,plot_frequence=5)        
         if not(last_point_reached):
             last_point_reached = ((end[0,0]==mapPath[0][0,0]) and (end[1,0]==mapPath[0][1,0]))
         else :
