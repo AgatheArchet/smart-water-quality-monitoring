@@ -228,9 +228,10 @@ class Graph:
             for i in range(n+1):
                 if doIntersect((x1,y1),(x2,y2),new_poly[i%n],new_poly[(i+1)%n]):
                     keysToTransform.append(key)
-#        for k in keysToTransform:
-        k = keysToTransform[1]
-        self.edges.pop(k, None)
+        for k in keysToTransform:
+        
+            self.edges.pop(k, None)
+        k = keysToTransform[7]
         self.findAlternativePath(k,new_poly)
             
     def findAlternativePath(self,key,polyCoords):
@@ -254,6 +255,7 @@ class Graph:
             if not(intersection2):
                 plt.plot([x2,polyCoords[point][0]],[y2,polyCoords[point][1]],'.-',color="orange")
                 vertex2_altern.append(point)
+        # comparing legnth of projection of each vertex on ((x1,y1),(x2,y2)) line.
         for point in vertex1_altern:
             angle = atan2(polyCoords[point][1]-y1,polyCoords[point][0]-x1)
             dist = sqrt((polyCoords[point][1]-y1)**2+(polyCoords[point][0]-x1)**2)
@@ -268,8 +270,60 @@ class Graph:
             if projection > proj2:
                 proj2 = projection
                 link2 = point
-        print(link1,link2)
-        #TODO : analysis with counterwise...
+        #plt.plot((x1,polyCoords[link1][0]),(y1,polyCoords[link1][1]),"red")
+        #plt.plot((x2,polyCoords[link2][0]),(y2,polyCoords[link2][1]),"red")
+        if link1 == link2:
+            pass
+            #creation of a path passing by link1 point
+        else:
+            # selecting best path on polygon passing by link1
+            lenght_other_path1 = float('inf')
+            other_path1 = []
+            for point in vertex2_altern :
+                pathCW, pathCCW = getSliceSequences(link1,point,n)
+                lcw = sum([euclideanDistance(polyCoords[pathCW[i]],polyCoords[pathCW[i+1]]) for i in range(len(pathCW)-1)])
+                lcw += euclideanDistance((x1,y1),polyCoords[pathCW[0]])
+                lcw += euclideanDistance((x2,y2),polyCoords[pathCW[-1]])
+                lccw = sum([euclideanDistance(polyCoords[pathCCW[i]],polyCoords[pathCCW[i+1]]) for i in range(len(pathCCW)-1)])
+                lccw += euclideanDistance((x1,y1),polyCoords[pathCCW[0]])
+                lccw += euclideanDistance((x2,y2),polyCoords[pathCCW[-1]])
+                if lcw<lenght_other_path1 or lccw<lenght_other_path1:
+                    if lcw<lccw:
+                        lenght_other_path1 = lcw
+                        other_path1 = deepcopy(pathCW)
+                    else:
+                        lenght_other_path1 = lccw
+                        other_path1 = deepcopy(pathCCW)
+            # selecting best path on polygon passing by link2
+            lenght_other_path2 = float('inf')
+            other_path2 = []
+            for point in vertex1_altern :
+                pathCW, pathCCW = getSliceSequences(link2,point,n)
+                lcw = sum([euclideanDistance(polyCoords[pathCW[i]],polyCoords[pathCW[i+1]]) for i in range(len(pathCW)-1)])
+                lcw += euclideanDistance((x2,y2),polyCoords[pathCW[0]])
+                lcw += euclideanDistance((x1,y1),polyCoords[pathCW[-1]])
+                lccw = sum([euclideanDistance(polyCoords[pathCCW[i]],polyCoords[pathCCW[i+1]]) for i in range(len(pathCCW)-1)])
+                lccw += euclideanDistance((x2,y2),polyCoords[pathCCW[0]])
+                lccw += euclideanDistance((x1,y1),polyCoords[pathCCW[-1]])
+                if lcw<lenght_other_path2 or lccw<lenght_other_path2:
+                    if lcw<lccw:
+                        lenght_other_path2 = lcw
+                        other_path2 = deepcopy(pathCW)
+                    else:
+                        lenght_other_path2 = lccw
+                        other_path2 = deepcopy(pathCCW)
+            #selecting the shortest path on polygon
+            if lenght_other_path1 <= lenght_other_path2:
+                plt.plot((x1,polyCoords[link1][0]),(y1,polyCoords[link1][1]),"red")
+                plt.plot([polyCoords[p][0] for p in other_path1],[polyCoords[p][1] for p in other_path1],"red" )
+                plt.plot((polyCoords[other_path1[-1]][0],x2),(polyCoords[other_path1[-1]][1],y2),"red") 
+            else:
+                plt.plot((x2,polyCoords[link2][0]),(y2,polyCoords[link2][1]),"red")
+                plt.plot([polyCoords[p][0] for p in other_path2],[polyCoords[p][1] for p in other_path2],"red" )
+                plt.plot((polyCoords[other_path2[-1]][0],x1),(polyCoords[other_path2[-1]][1],y1),"red") 
+                
+            
+        #TODO : deal with alternative paths
         
             
                     
@@ -554,10 +608,30 @@ def doIntersect(p1,q1,p2,q2):
     return False
 
 def isClockwise(coords):
+    """
+    detects in which sens a convex polygon coords are ordered (clockwise or
+    counter-clockwise).
+    """
     res = 0
     for i in range(len(coords)):
         res += (coords[(i+1)%len(coords)][0]-coords[i][0])*(coords[(i+1)%len(coords)][1]+coords[i][1])
     return(res>0)
+    
+def getSliceSequences(i,j,n):
+    """
+    returns 2 slieing sequences (from left to right and right to left) for two 
+    indices of a n-size list. The two resulting sequences begin by i and end by 
+    j.
+    """
+    liste = list(range(n))
+    maxi,mini = max(i,j), min(i,j)
+    list1 = liste[mini:maxi+1]
+    list2 = (liste[maxi:] + liste[:mini+1])[::-1]
+    return(list1,list2)
+
+def euclideanDistance(point1,point2):
+    l = m.sqrt((point1[0]-point2[0])**2+(point1[1]-point2[1])**2)
+    return(l)
       
         
 if __name__=='__main__':
