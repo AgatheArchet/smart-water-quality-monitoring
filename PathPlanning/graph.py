@@ -203,7 +203,7 @@ class Graph:
     def addPolygoneObstacleAtCoords(self,list_x,list_y):
         """
         proposes an alternative path if one of the vertex touches the obstacle.
-        
+        The obstacle is assumed to be convex, and to have no vertex inside it.
         """
         plt.figure(0)
         safety_distance = 0.2
@@ -240,6 +240,10 @@ class Graph:
             self.subpath_obstacle[(k[0], k[1])] = [(new_poly[p][0],new_poly[p][1]) for p in path_poly]
             
     def findAlternativePath(self,key,polyCoords):
+        """
+        determines the shortest distance between two given point in key, 
+        bypassing the obstacle with a safety distance from it.
+        """
         x1,y1 = self.vertices[key[0]]
         x2,y2 = self.vertices[key[1]]
         vertex1_altern,vertex2_altern = [],[]
@@ -329,6 +333,17 @@ class Graph:
 #                plt.plot([polyCoords[p][0] for p in other_path2],[polyCoords[p][1] for p in other_path2],"red" )
 #                plt.plot((polyCoords[other_path2[-1]][0],x1),(polyCoords[other_path2[-1]][1],y1),"red")
                 return(length_other_path2,other_path2)
+                
+    def addObstacleIntoFinalPath(self):
+        n = len(self.path)
+        points = [(self.path[i],self.path[(i+1)%n]) for i in range(n)]
+        for i in range(len(points)):
+            print(self.path)
+            if points[i] in self.edges.keys():
+                pass
+            else :
+                for k in range(len(self.subpath_obstacle[points[i]])):
+                    self.path.insert(i+1+k, self.subpath_obstacle[points[i]][k])
             
     def getAssociatedNumber(self,x,y):
         """
@@ -405,8 +420,12 @@ class Graph:
             plt.subplot(121)
         x,y = [],[]
         for points in self.path:
-            x.append(self.vertices[points][0])
-            y.append(self.vertices[points][1])
+            if isinstance(points, tuple):
+                x.append(points[0])
+                y.append(points[1])
+            else :
+                x.append(self.vertices[points][0])
+                y.append(self.vertices[points][1])
         x.append(self.vertices[self.path[0]][0])
         y.append(self.vertices[self.path[0]][1])
         max_X,max_Y,min_X,min_Y = max(x),max(y),min(x),min(y)
@@ -519,7 +538,10 @@ class Graph:
                     min_vertex = neighbour
             visited_vertices.append(min_vertex)
             unvisited_vertices.remove(min_vertex)
-        self.path = visited_vertices
+        if abs(atan2(self.vertices[visited_vertices[-1]][1],self.vertices[visited_vertices[-1]][0]) -self.wind_angle)<pi/3:
+            self.path = visited_vertices[::-1]
+        else:
+            self.path = visited_vertices
         self.time_solved = time.time()-timer
         
     def solveGenetic(self, temperature=100000, pop_size=20, show_evolution = False):
@@ -678,19 +700,21 @@ if __name__=='__main__':
     G.addPolygoneObstacleAtCoords([3,3.25,3.5,3.5,3],[0.5,0,0.5,2,2])
     
 #    G.addEdgesAll()
-    G.solveRandom(100000,show_evolution=True)
+#    G.solveRandom(100000,show_evolution=True)
     
 #    G.addEdgesAll()
 #    G.solveLoop(100,show_evolution=True)
     
 #    G.addEdgesDelaunay()
-    #G.solveNearestNeighbour()
+    G.solveNearestNeighbour()
     
 #    G.addEdgesAll()
 #    G.solveGenetic(temperature = 1000000, pop_size = 20, show_evolution=True)
     
-    G.plotPath(gradual=True)
+    
     G.plot()
+    #G.addObstacleIntoFinalPath()
+    #G.plotPath(gradual=True)
     plt.show()
 
     #TODO : modify algorithms so it works with circle areas

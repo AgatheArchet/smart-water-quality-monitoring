@@ -94,12 +94,12 @@ if __name__=='__main__':
 #-----------------------------------------------------------------------------
 
     # Converting the path for the map
-    mapPath = [np.array([[200*list(G.vertices[k])[0]],[200*list(G.vertices[k])[1]]]) for k in G.path]
+    mapPath = [np.array([[300*list(G.vertices[k])[0]],[300*list(G.vertices[k])[1]]]) for k in G.path]
     start = mapPath[0]
     end = mapPath[-1]
     
     # Constructing the autonomous sailboat
-    x0= array([[-5,-5,-3,0.2,0]]).T  #x=(x,y,θ,v,w)
+    x0= array([[305,-5,-3,0.2,0]]).T  #x=(x,y,θ,v,w)
     a_tw = wind_speed    # true wind force
     ψ_tw = wind_angle    # true wind angle
     r = 10      # maximale acceptable distance from target line
@@ -111,13 +111,13 @@ if __name__=='__main__':
     # Matplotlib parameters    
     t = 0
     dt = 0.1
-    ax=init_figure(-10,210,-10,210)
+    ax=init_figure(-10,310,-10,310)
     measuring = True
     last_point_reached = False
 
 
     while measuring:
-        B.nextStep(ax,mapPath,dt,showTrajectory=True,plot_frequence=5)        
+        B.nextStep(ax,mapPath,dt,showTrajectory=True,plot_frequence=10)        
         if not(last_point_reached):
             last_point_reached = ((end[0,0]==mapPath[0][0,0]) and (end[1,0]==mapPath[0][1,0]))
         else :
