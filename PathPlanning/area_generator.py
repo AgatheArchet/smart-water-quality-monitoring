@@ -68,6 +68,7 @@ class Area:
                      y = (1-point/points_package)*radius*m.sin(angle/self.angle_div*2*m.pi-angleStart)+self.center[1]
                      self.points_lat.append(x)
                      self.points_lon.append(y)
+                     
             
             
     def generateMap(self):

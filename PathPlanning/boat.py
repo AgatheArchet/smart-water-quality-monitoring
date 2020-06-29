@@ -9,6 +9,7 @@ from numpy import *
 from numpy.linalg import *
 import matplotlib.pyplot as plt
 import math as m
+from scipy.integrate import solve_ivp
         
 class Boat():
     """
@@ -98,7 +99,6 @@ class Boat():
         plot2D(R@Rs@sail,'red');       
         plot2D(R@Rr@rudder,'red'); 
         if(showTrajectory):
-            self.trajectory.append((x[0],x[1]))
             plt.plot([i[0] for i in self.trajectory],[j[1] for j in self.trajectory],'--',color="yellowgreen")
             
     def f(self):
@@ -162,7 +162,7 @@ class Boat():
         
 
     
-    def nextStep(self,ax,path,dt=0.1,showTrajectory=False,plot_frequence=2):
+    def nextStep(self,ax,path,dt=0.1,showTrajectory=False,plot_frequency=2):
         """
         manages automatically the evolution of the sailboat over time.
         """
@@ -171,14 +171,33 @@ class Boat():
         xdot,δs = self.f()
         self.x = self.x + dt*xdot
         self.t += dt
-        if round(self.t,2)%plot_frequence==0:
+        if round(self.t,2)%plot_frequency==0:
             plt.plot([a[0,0],b[0,0]],[a[1,0],b[1,0]],linestyle='dotted',color="red")
             plt.plot([i[0,0] for i in path],[j[1,0] for j in path],'co')
             self.draw_sailboat(δs,self.u[0,0],showTrajectory)
             clear(ax)
+        if showTrajectory:
+            self.trajectory.append((self.x[0],self.x[1]))
         if ((b-a).T)@(b-array([[self.x[0,0]],[self.x[1,0]]]))<0:
             path.append(path.pop(0))
             a,b = a,b = path[0], path[1]
+    
+def f_ode_45(t,x,boat,ax,path,showTrajectory=False):
+    boat.x = array([x]).T
+    a,b = path[0], path[1]
+    boat.controller(a,b)
+    xdot,δs = boat.f()
+    if showTrajectory:
+        boat.trajectory.append((boat.x[0],boat.x[1]))
+    if round(t,10)%(1)==0:
+        plt.plot([a[0,0],b[0,0]],[a[1,0],b[1,0]],linestyle='dotted',color="red")
+        plt.plot([i[0,0] for i in path],[j[1,0] for j in path],'co')
+        boat.draw_sailboat(δs,boat.u[0,0],showTrajectory)
+        clear(ax)
+    if ((b-a).T)@(b-array([[boat.x[0,0]],[boat.x[1,0]]]))<0:
+        path.append(path.pop(0))
+        a,b = a,b = path[0], path[1]
+    return((xdot.T).tolist()[0])
       
 
 def draw_arrow(x,y,θ,L,col):
@@ -191,13 +210,13 @@ def draw_arrow(x,y,θ,L,col):
 def plot2D(M,col='black',w=1):
     plt.plot(M[0, :], M[1, :], col, linewidth = w) 
     
-def init_figure(xmin,xmax,ymin,ymax): 
+def init_figure(path): 
     fig = plt.figure(3)
     ax = fig.add_subplot(111, aspect='equal')	
-    ax.xmin=xmin
-    ax.xmax=xmax
-    ax.ymin=ymin
-    ax.ymax=ymax
+    ax.xmin=min(path, key=lambda x: x[0])[0,0]-20
+    ax.xmax=max(path, key=lambda x: x[0])[0,0]+20
+    ax.ymin=min(path, key=lambda x: x[1])[1,0]-20
+    ax.ymax=max(path, key=lambda x: x[1])[1,0]+20
     clear(ax)
     return ax       
     
@@ -206,9 +225,11 @@ def clear(ax):
     plt.cla()
     ax.set_xlim(ax.xmin,ax.xmax)
     ax.set_ylim(ax.ymin,ax.ymax)    
-
+    
 
 if __name__=='__main__':
+    
+#---------------------Parameters to set----------------------------------------
 
     x0= array([[10,-40,-3,1,0]]).T   #x=(x,y,θ,v,w)
     dt = 0.10
@@ -220,6 +241,8 @@ if __name__=='__main__':
     δrmax = 1   # maximal rudder angle
     β = pi/4    # angle of the sail in crosswind 
     
+    Boat = Boat(x0,a_tw, ψ_tw, r, ζ, δrmax, β)
+    
     A = array([[-80],[-80]])   
     B = array([[50],[50]])
     C = array([[-80],[0]])
@@ -227,9 +250,18 @@ if __name__=='__main__':
     path = [A,B,C,D]
     a,b = path[0], path[1]
     
-    ax=init_figure(-100,100,-100,100)
+    ax=init_figure(path)
     
-    B = Boat(x0,a_tw, ψ_tw, r, ζ, δrmax, β)
+#---------------------Choose an integration method-----------------------------
     
-    for t in arange(0,10000,dt):
-        B.nextStep(ax,path,dt,showTrajectory=True)
+    # Euler
+#    for t in arange(0,10000,dt):
+#        Boat.nextStep(ax,path,dt,showTrajectory=True,plot_frequency=10)
+    
+    # Runge-Kutta 45
+    for t in range(0,10000):
+        y = solve_ivp(f_ode_45, (0,0.5),(x0.T).tolist()[0],method='RK45',
+                      args =(Boat,ax,path,True))
+        x0 = y.y[:,-1].reshape((5,1))
+    
+    

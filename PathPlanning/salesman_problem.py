@@ -14,7 +14,8 @@ import math as m, numpy as np
 from area_generator import Area
 from graph import Graph
 import matplotlib.pyplot as plt
-from boat import *
+from boat import * 
+from scipy.integrate import solve_ivp
 
 
 def readData(filename):
@@ -51,16 +52,22 @@ def euclideanDistance(xa,xb,ya,yb):
       
 if __name__=='__main__':
     
-    # Genarating points, optional if all points are already known
-    GPSpoints = np.array([[50.352473,-4.161624],[50.352473,-4.134152],[50.343769,-4.134152],[50.343769,-4.161624],[50.352473,-4.161624]])
-    A = Area(100,GPSpoints[0,:],GPSpoints,"square")
-    A.placeMeasurementPoints()
-    A.generateFile()
+#    # Genarating points, optional if all points are already known
+#    GPSpoints = np.array([[50.352473,-4.161624],[50.352473,-4.134152],[50.343769,-4.134152],[50.343769,-4.161624],[50.352473,-4.161624]])
+#    A = Area(100,GPSpoints[0,:],GPSpoints,"square")
+#    A.placeMeasurementPoints()
+#    A.generateFile()
+#    
+#    # Reading points from the file
+#    begining,lat,lon = readData("points.txt")
+#    x_list_utm,y_list_utm = LatLonToUTMXY(lat,lon)
+#    x_list,y_list = normalize(x_list_utm,y_list_utm)
     
-    # Reading points from the file
-    begining,lat,lon = readData("points.txt")
-    x_list_utm,y_list_utm = LatLonToUTMXY(lat,lon)
-    x_list,y_list = normalize(x_list_utm,y_list_utm)
+    center, beginning = [1,1],[4,4]
+    C = Area(65,beginning,beginning,"circle",center, angle_division=16)
+    C.placeMeasurementPoints()
+    x_list,y_list = C.points_lat, C.points_lon
+    x_list,y_list = normalize(x_list,y_list)
     
     # Creating a graph
     G = Graph()
@@ -91,7 +98,7 @@ if __name__=='__main__':
 #    G.solveGenetic(temperature = 1000000, pop_size = 25, show_evolution=True)
 #    G.plotPath(gradual=True)
     
-#-----------------------------------------------------------------------------
+#---------------Complete with the boat's characeristics------------------------
 
     # Converting the path for the map
     mapPath = [np.array([[300*list(G.vertices[k])[0]],[300*list(G.vertices[k])[1]]]) for k in G.path]
@@ -99,7 +106,7 @@ if __name__=='__main__':
     end = mapPath[-1]
     
     # Constructing the autonomous sailboat
-    x0= array([[305,-5,-3,0.2,0]]).T  #x=(x,y,θ,v,w)
+    x0= array([[300,125,-pi,0.2,0]]).T  #x=(x,y,θ,v,w)
     a_tw = wind_speed    # true wind force
     ψ_tw = wind_angle    # true wind angle
     r = 10      # maximale acceptable distance from target line
@@ -109,19 +116,40 @@ if __name__=='__main__':
     B = Boat(x0,a_tw, ψ_tw, r, ζ, δrmax, β)
     
     # Matplotlib parameters    
-    t = 0
     dt = 0.1
-    ax=init_figure(-10,310,-10,310)
-    measuring = True
-    last_point_reached = False
+    ax=init_figure(mapPath)
+    plot_frequency = 5
+    end_index = len(mapPath)
+    
+#-----------------Uncomment the numarical integration--------------------------
+    
+    # Euler
+#    while True:
+#        B.nextStep(ax,mapPath,dt,showTrajectory=True,plot_frequency=min(20,plot_frequency))  
+#        new_index = np.where(array(mapPath).reshape(len(mapPath),2) == end.T)[0][0]
+#        if (new_index-end_index)<=0:
+#            print(new_index-end_index)
+#            end_index = new_index
+#        else:
+#            B.nextStep(ax,mapPath,dt,showTrajectory=True,plot_frequency=min(20,plot_frequency)) 
+#            break
+                
+    # Runge-Kutta 45
+    while True:
+        y = solve_ivp(f_ode_45, (0,plot_frequency),(x0.T).tolist()[0],method='RK45',
+                      args=(B,ax,mapPath,True))
+        x0 = y.y[:,-1].reshape((5,1))
+        #TODO : redo the ocondition: does not work on circle-shape  areas
+        new_index = np.where(array(mapPath).reshape(len(mapPath),2) == end.T)[0][0]
+        print(new_index)
+        if (new_index-end_index)<=0:
+            print(new_index-end_index)
+            end_index = new_index
+        else:
+            break
+            y = solve_ivp(f_ode_45, (0,100),(x0.T).tolist()[0],method='RK45',
+                          args=(B,ax,mapPath,True))
+            
+        
 
-
-    while measuring:
-        B.nextStep(ax,mapPath,dt,showTrajectory=True,plot_frequence=10)        
-        if not(last_point_reached):
-            last_point_reached = ((end[0,0]==mapPath[0][0,0]) and (end[1,0]==mapPath[0][1,0]))
-        else :
-            if ((start[0,0]==mapPath[0][0,0]) and (start[1,0]==mapPath[0][1,0])):
-                measuring = False
-                break;
     plt.show()
