@@ -47,7 +47,7 @@ class Area:
         """
         generates points accordingly to the area's constraints and properties.
         """
-        if self.shape=="square":
+        if self.shape=="grid":
             min_lat, max_lat = np.min(self.contour[:,0]), np.max(self.contour[:,0])
             min_lon, max_lon = np.min(self.contour[:,1]), np.max(self.contour[:,1])
             n = int(m.sqrt(self.nb_points))
@@ -69,6 +69,10 @@ class Area:
                      self.points_lat.append(x)
                      self.points_lon.append(y)
                      
+        if self.shape =="coastal":
+            continue
+        #TODO: create random and costal-shaped set of points
+                     
             
             
     def generateMap(self):
@@ -77,7 +81,7 @@ class Area:
         """
         ax = plt.gca()
         #ax.set_facecolor("#2C7FCA")
-        if self.shape=="square":
+        if self.shape=="grid":
             plt.plot(self.contour[:,0],self.contour[:,1],'g--')
         if self.shape=="round":
             radius = m.sqrt((self.beginning[0]-self.center[0])**2+(self.beginning[1]-self.center[1])**2)
@@ -94,7 +98,7 @@ class Area:
         f.write("#beginning\n")
         f.write('{},{},\n'.format(self.beginning[0],self.beginning[1]))
         f.write("#points\n")
-        if self.shape=="square":
+        if self.shape=="grid":
             for i in range(len(self.points_lat)):
                 for j in range(len(self.points_lon)):
                     f.write('{},{};\n'.format(self.points_lat[0,i],self.points_lon[j,0]))
@@ -108,7 +112,7 @@ class Area:
 if __name__=='__main__':
     
 #    GPSpoints = np.array([[1,1],[1,6],[6,6],[6,1],[1,1]])
-#    A = Area(100,GPSpoints[0,:],GPSpoints,"square")
+#    A = Area(100,GPSpoints[0,:],GPSpoints,"grid")
 #    A.placeMeasurementPoints()
 #    A.generateFile()
 #    A.generateMap()

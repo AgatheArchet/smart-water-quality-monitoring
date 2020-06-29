@@ -610,7 +610,7 @@ def orientation(p, q, r):
     Returned values: 
      0 : Colinear points, 1 : Clockwise points, 2 : Counterclockwise 
     """  
-    val = (float(q[1] - p[1]) * (r[0] - q[0])) - (float(q[0] - p[0]) * (r[1] - q[1])) 
+    val = (float(q[1]-p[1])*(r[0]-q[0]))-(float(q[0]-p[0])*(r[1]-q[1])) 
     if (val > 0): 
         return 1 # Clockwise orientation
     elif (val < 0): 
@@ -652,7 +652,8 @@ def isClockwise(coords):
     """
     res = 0
     for i in range(len(coords)):
-        res += (coords[(i+1)%len(coords)][0]-coords[i][0])*(coords[(i+1)%len(coords)][1]+coords[i][1])
+        res += (coords[(i+1)%len(coords)][0]-coords[i][0])*(coords[(i+1)%len(
+                coords)][1]+coords[i][1])
     return(res>0)
     
 def getSliceSequences(i,j,n):

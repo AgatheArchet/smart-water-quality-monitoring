@@ -22,11 +22,13 @@ def readData(filename):
     lat, lon = [],[] 
     with open(filename, 'r') as f:
         if f.readline()=='#beginning\n':
-            start = (f.readline()).replace(","," ").replace(";"," ").replace("\n","").split()
+            start = (f.readline()).replace(","," ").replace(";"," ").replace(
+                    "\n","").split()
             beginning = [float(start[0]),float(start[1])]
             f.readline()
         for line in f:
-            points = line.replace(","," ").replace(";"," ").replace("\n","").split()
+            points = line.replace(","," ").replace(";"," ").replace("\n",""
+                                 ).split()
             lat.append(float(points[0]))
             lon.append(float(points[1]))
     f.close()
@@ -49,12 +51,20 @@ def normalize(list_x,list_y):
     
 def euclideanDistance(xa,xb,ya,yb):
     return(m.sqrt((yb-ya)**2+(xb-xa)**2))
+    
+def extractDuplicate(a):
+    b = list(set(a))
+    for elem in b:
+        a.remove(elem)
+    return(a)
       
 if __name__=='__main__':
     
 #    # Genarating points, optional if all points are already known
-#    GPSpoints = np.array([[50.352473,-4.161624],[50.352473,-4.134152],[50.343769,-4.134152],[50.343769,-4.161624],[50.352473,-4.161624]])
-#    A = Area(100,GPSpoints[0,:],GPSpoints,"square")
+#    GPSpoints = np.array([[50.352473,-4.161624],[50.352473,-4.134152],
+#                          [50.343769,-4.134152],[50.343769,-4.161624],
+#                          [50.352473,-4.161624]])
+#    A = Area(100,GPSpoints[0,:],GPSpoints,"grid")
 #    A.placeMeasurementPoints()
 #    A.generateFile()
 #    
@@ -98,10 +108,11 @@ if __name__=='__main__':
 #    G.solveGenetic(temperature = 1000000, pop_size = 25, show_evolution=True)
 #    G.plotPath(gradual=True)
     
-#---------------Complete with the boat's characeristics------------------------
+#---------------Complete with the boat's characteristics-----------------------
 
     # Converting the path for the map
-    mapPath = [np.array([[300*list(G.vertices[k])[0]],[300*list(G.vertices[k])[1]]]) for k in G.path]
+    mapPath = [np.array([[300*list(G.vertices[k])[0]],
+                          [300*list(G.vertices[k])[1]]]) for k in G.path]
     start = mapPath[0]
     end = mapPath[-1]
     
@@ -118,7 +129,7 @@ if __name__=='__main__':
     # Matplotlib parameters    
     dt = 0.1
     ax=init_figure(mapPath)
-    plot_frequency = 5
+    plot_frequency = 15
     end_index = len(mapPath)
     
 #-----------------Uncomment the numarical integration--------------------------
@@ -126,7 +137,9 @@ if __name__=='__main__':
     # Euler
 #    while True:
 #        B.nextStep(ax,mapPath,dt,showTrajectory=True,plot_frequency=min(20,plot_frequency))  
-#        new_index = np.where(array(mapPath).reshape(len(mapPath),2) == end.T)[0][0]
+#
+#        no = np.where(array(mapPath).reshape(len(mapPath),2) == end.T)[0]
+#        new_index = extractDuplicate(no.tolist())[0]
 #        if (new_index-end_index)<=0:
 #            print(new_index-end_index)
 #            end_index = new_index
@@ -139,8 +152,8 @@ if __name__=='__main__':
         y = solve_ivp(f_ode_45, (0,plot_frequency),(x0.T).tolist()[0],method='RK45',
                       args=(B,ax,mapPath,True))
         x0 = y.y[:,-1].reshape((5,1))
-        #TODO : redo the ocondition: does not work on circle-shape  areas
-        new_index = np.where(array(mapPath).reshape(len(mapPath),2) == end.T)[0][0]
+        no = np.where(array(mapPath).reshape(len(mapPath),2) == end.T)[0]
+        new_index = extractDuplicate(no.tolist())[0]
         print(new_index)
         if (new_index-end_index)<=0:
             print(new_index-end_index)
@@ -149,7 +162,5 @@ if __name__=='__main__':
             break
             y = solve_ivp(f_ode_45, (0,100),(x0.T).tolist()[0],method='RK45',
                           args=(B,ax,mapPath,True))
-            
-        
-
+    
     plt.show()
