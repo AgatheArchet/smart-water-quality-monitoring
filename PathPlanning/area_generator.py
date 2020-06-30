@@ -70,7 +70,7 @@ class Area:
                      self.points_lon.append(y)
                      
         if self.shape =="coastal":
-            continue
+            print("o")
         #TODO: create random and costal-shaped set of points
                      
             

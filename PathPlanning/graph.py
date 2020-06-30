@@ -683,22 +683,22 @@ if __name__=='__main__':
     G.defineWind(angle=pi/2)
     
     #square
-   # x,y = [0,1,3,2.5,6,5,4],[0,1,6,1,0.5,4,1]
+    x,y = [0,1,3,2.5,6,5,4],[0,1,6,1,0.5,4,1]
     
     #round
-    center, beginning = [1,1],[4,4]
-    C = Area(65,beginning,beginning,"circle",center, angle_division=16)
-    C.placeMeasurementPoints()
-    x,y = C.points_lat, C.points_lon
+#    center, beginning = [1,1],[4,4]
+#    C = Area(65,beginning,beginning,"circle",center, angle_division=16)
+#    C.placeMeasurementPoints()
+#    x,y = C.points_lat, C.points_lon
 
     G.addVertices(x,y)
 
-    #G.addEdgesAll()
-#    G.addObstacleAtCoords(x=1,y=2,r=0.5)
+    G.addEdgesAll()
+    #G.addObstacleAtCoords(x=1,y=2,r=0.5)
 #    fig, ax = plt.subplots()
 #    ax.add_artist(plt.Circle((1,2),0.5))
     
-    #G.addPolygoneObstacleAtCoords([3,3.25,3.5,3.5,3],[0.5,0,0.5,2,2])
+    G.addPolygoneObstacleAtCoords([3,3.25,3.5,3.5,3],[0.5,0,0.5,2,2])
     
 #    G.addEdgesAll()
 #    G.solveRandom(100000,show_evolution=True)
@@ -706,7 +706,7 @@ if __name__=='__main__':
 #    G.addEdgesAll()
 #    G.solveLoop(100,show_evolution=True)
     
-    G.addEdgesDelaunay()
+#    G.addEdgesDelaunay()
     G.solveNearestNeighbour()
     
 #    G.addEdgesAll()
