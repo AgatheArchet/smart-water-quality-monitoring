@@ -8,6 +8,8 @@ Created on Fri Jun 12 14:02:06 2020
 import math as m
 import matplotlib.pyplot as plt
 import numpy as np
+from random import seed,random
+import time
 
 class Area:
     """
@@ -70,8 +72,18 @@ class Area:
                      self.points_lon.append(y)
                      
         if self.shape =="coastal":
-            print("o")
-        #TODO: create random and costal-shaped set of points
+            self.points_lat,self.points_lon = [],[]
+            x_poly, y_poly = self.contour[:,0],self.contour[:,1]
+            maxi,mini = max(max(x_poly),max(y_poly)),min(min(x_poly),min(y_poly))
+            seed(time.time())
+            for i in range(self.nb_points):
+                print(i)
+                while True:
+                    x,y = random()*(maxi-mini)+mini, random()*(maxi-mini)+mini
+                    if isInsidePolygon(len(x_poly),x_poly,y_poly,x,y):
+                        self.points_lat.append(x)
+                        self.points_lon.append(y)
+                        break
                      
             
             
@@ -79,9 +91,7 @@ class Area:
         """
         plots a graph of the points for a clear representation of the area. 
         """
-        ax = plt.gca()
-        #ax.set_facecolor("#2C7FCA")
-        if self.shape=="grid":
+        if self.shape=="grid" or self.shape=="coastal":
             plt.plot(self.contour[:,0],self.contour[:,1],'g--')
         if self.shape=="round":
             radius = m.sqrt((self.beginning[0]-self.center[0])**2+(self.beginning[1]-self.center[1])**2)
@@ -107,18 +117,35 @@ class Area:
                     f.write('{:.2f},{:.2f};\n'.format(self.points_lat[i],self.points_lon[i]))
         f.close()
         
-    
+def isInsidePolygon(n,Vx,Vy,x,y):
+    """
+    verifies if a given point (x,y) is inside any polygon (based upon Jordan 
+    curve theorem).
+    """
+    c = False
+    for i in range(0,n):
+        j = (i-1)%n
+        if (((Vy[i]>y)!=(Vy[j]>y)) and 
+            (x < (Vx[j]-Vx[i])*(y-Vy[i])/(Vy[j]-Vy[i])+Vx[i])):
+            c = not(c)
+    return c     
         
 if __name__=='__main__':
     
-#    GPSpoints = np.array([[1,1],[1,6],[6,6],[6,1],[1,1]])
-#    A = Area(100,GPSpoints[0,:],GPSpoints,"grid")
-#    A.placeMeasurementPoints()
-#    A.generateFile()
-#    A.generateMap()
+    GPSpoints = np.array([[1,1],[1,6],[6,6],[6,1],[1,1]])
+    A = Area(100,GPSpoints[0,:],GPSpoints,"grid")
+    A.placeMeasurementPoints()
+    A.generateFile()
+    A.generateMap()
 
-    center, beginning = [1,1],[4,4]
-    C = Area(65,beginning,beginning,"circle",center, angle_division=16)
-    C.placeMeasurementPoints()
-    C.generateFile()
-    C.generateMap()
+#    center, beginning = [1,1],[4,4]
+#    C = Area(65,beginning,beginning,"circle",center, angle_division=16)
+#    C.placeMeasurementPoints()
+#    C.generateFile()
+#    C.generateMap()
+    
+#    GPSpoints = np.array([[1,1],[10,1],[10,10],[9,9],[8,9],[7,10.8],[6,10.8],[6.5,10],[6,8],[5,11],[4,9],[3,8.5],[2,11],[1,10],[1,1]])
+#    M = Area(100,GPSpoints[0,:],GPSpoints,"coastal")
+#    M.placeMeasurementPoints()
+#    M.generateMap()
+    
