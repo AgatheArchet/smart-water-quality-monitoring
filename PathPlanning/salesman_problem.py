@@ -49,6 +49,11 @@ def normalize(list_x,list_y):
     list_y_norm = [(y-min_Y)/(max_Y-min_Y) for y in list_y]
     return(list_x_norm,list_y_norm)
     
+def normalizeObject(list_x,list_y, min_X, max_X, min_Y,max_Y):
+    list_x_norm = [(x-min_X)/(max_X-min_X) for x in list_x]
+    list_y_norm = [(y-min_Y)/(max_Y-min_Y) for y in list_y]
+    return(list_x_norm,list_y_norm)
+    
 def euclideanDistance(xa,xb,ya,yb):
     return(m.sqrt((yb-ya)**2+(xb-xa)**2))
     
@@ -60,7 +65,10 @@ def extractDuplicate(a):
       
 if __name__=='__main__':
     
-#    # Genarating points, optional if all points are already known
+#----------------Uncomment and customize the area's shape----------------------
+
+    #Grid    
+    # Genarating points, optional if all points are already known
 #    GPSpoints = np.array([[50.352473,-4.161624],[50.352473,-4.134152],
 #                          [50.343769,-4.134152],[50.343769,-4.161624],
 #                          [50.352473,-4.161624]])
@@ -73,66 +81,94 @@ if __name__=='__main__':
 #    x_list_utm,y_list_utm = LatLonToUTMXY(lat,lon)
 #    x_list,y_list = normalize(x_list_utm,y_list_utm)
     
-    center, beginning = [1,1],[4,4]
-    C = Area(65,beginning,beginning,"circle",center, angle_division=16)
-    C.placeMeasurementPoints()
-    x_list,y_list = C.points_lat, C.points_lon
-    x_list,y_list = normalize(x_list,y_list)
+    
+    #Simple Grid
+    nb_of_points = 100
+    GPSpoints = np.array([[0,0],[0,100],[100,100],[100,0],[0,0]])
+    A = Area(nb_of_points,GPSpoints[0,:],GPSpoints,"grid")
+    A.placeMeasurementPoints()
+    x_listRaw = A.points_lat.reshape(nb_of_points).tolist()
+    y_listRaw = A.points_lon.reshape(nb_of_points).tolist()
+    x_list,y_list = normalize(x_listRaw,y_listRaw)
+    
+    # Simple Circle
+#    center, beginning = [1,1],[4,4]
+#    C = Area(65,beginning,beginning,"circle",center, angle_division=16)
+#    C.placeMeasurementPoints()
+#    x_listRaw,y_listRaw = C.points_lat, C.points_lon
+#    x_list,y_list = normalize(x_listRaw,y_listRaw)
+    
+#----------------Specify the characteristics of the wind-----------------------    
     
     # Creating a graph
     G = Graph()
     G.addVertices(x_list,y_list)
-    wind_angle, wind_speed = 0, 2
+    wind_angle, wind_speed = -pi/2, 2
     G.defineWind(wind_angle,wind_speed)
+    
+#----------------Uncomment the edges creation method-----------------------
+    
+    # Enable all possible edges between each existing vertex
+#    G.addEdgesAll()
+    
+    # Enable only edges that link vertices with their nearest neighbour
+    # Preferable when adding an obstacle to drastically lower the complexity
+    G.addEdgesDelaunay()
+
+#-----Uncomment and add obstacle's coordinates, choose a safety distance--------
+    
+    obx,oby = [2.5,7.5,7.5,5,2.5],[0.1,0.1,15,17,15]
+    obx,oby = normalizeObject(obx,oby,min(x_listRaw),max(x_listRaw),
+                                  min(y_listRaw),max(y_listRaw))
+    G.addPolygoneObstacleAtCoords(obx,oby,safety_distance = 0.012)
+    plt.plot(obx+[obx[0]],oby+[oby[0]],"blue")
+    G.plot()
     
 #-----------------Uncomment the solving strategy-------------------------------
     
     # Random strategy
-#    G.addEdgesAll()
 #    G.solveRandom(200000,show_evolution=True)
 #    G.plotPath(gradual=True)
     
     # Loop strategy
-#    G.addEdgesAll()
 #    G.solveLoop(30,show_evolution=True)
 #    G.plotPath(gradual=True)
 
     # Nearest Neighbour Strategy with a Delaunay triangulation
-    G.addEdgesDelaunay()
     G.solveNearestNeighbour()
-    G.plotPath(gradual=True)
+    G.plotPath(gradual=True, obstacle_x = obx, obstacle_y = oby)
     
     
     # Genetic algorithm strategy
-#    G.addEdgesAll()
 #    G.solveGenetic(temperature = 1000000, pop_size = 25, show_evolution=True)
 #    G.plotPath(gradual=True)
+    
     
 #---------------Complete with the boat's characteristics-----------------------
 
     # Converting the path for the map
-    mapPath = [np.array([[300*list(G.vertices[k])[0]],
-                          [300*list(G.vertices[k])[1]]]) for k in G.path]
-    start = mapPath[0]
-    end = mapPath[-1]
+#    mapPath = [np.array([[300*list(G.vertices[k])[0]],
+#                          [300*list(G.vertices[k])[1]]]) for k in G.path]
+#    start = mapPath[0]
+#    end = mapPath[-1]
     
     # Constructing the autonomous sailboat
-    x0= array([[300,125,-pi,0.2,0]]).T  #x=(x,y,θ,v,w)
-    a_tw = wind_speed    # true wind force
-    ψ_tw = wind_angle    # true wind angle
-    r = 10      # maximale acceptable distance from target line
-    ζ = pi/4    # closed hauled angle for the no-go zone
-    δrmax = 1   # maximal rudder angle
-    β = pi/4    # angle of the sail in crosswind 
-    B = Boat(x0,a_tw, ψ_tw, r, ζ, δrmax, β)
+#    x0= array([[300,125,-pi,0.2,0]]).T  #x=(x,y,θ,v,w)
+#    a_tw = wind_speed    # true wind force
+#    ψ_tw = wind_angle    # true wind angle
+#    r = 10      # maximale acceptable distance from target line
+#    ζ = pi/4    # closed hauled angle for the no-go zone
+#    δrmax = 1   # maximal rudder angle
+#    β = pi/4    # angle of the sail in crosswind 
+#    B = Boat(x0,a_tw, ψ_tw, r, ζ, δrmax, β)
     
     # Matplotlib parameters    
-    dt = 0.1
-    ax=init_figure(mapPath)
-    plot_frequency = 15
-    end_index = len(mapPath)
+#    dt = 0.1
+#    ax=init_figure(mapPath)
+#    plot_frequency = 15
+#    end_index = len(mapPath)
     
-#-----------------Uncomment the numarical integration--------------------------
+#-----------------Uncomment the numerical integration--------------------------
     
     # Euler
 #    while True:
@@ -148,19 +184,19 @@ if __name__=='__main__':
 #            break
                 
     # Runge-Kutta 45
-    while True:
-        y = solve_ivp(f_ode_45, (0,plot_frequency),(x0.T).tolist()[0],method='RK45',
-                      args=(B,ax,mapPath,True))
-        x0 = y.y[:,-1].reshape((5,1))
-        no = np.where(array(mapPath).reshape(len(mapPath),2) == end.T)[0]
-        new_index = extractDuplicate(no.tolist())[0]
-        print(new_index)
-        if (new_index-end_index)<=0:
-            print(new_index-end_index)
-            end_index = new_index
-        else:
-            break
-            y = solve_ivp(f_ode_45, (0,100),(x0.T).tolist()[0],method='RK45',
-                          args=(B,ax,mapPath,True))
-    
+#    while True:
+#        y = solve_ivp(f_ode_45, (0,plot_frequency),(x0.T).tolist()[0],method='RK45',
+#                      args=(B,ax,mapPath,True))
+#        x0 = y.y[:,-1].reshape((5,1))
+#        no = np.where(array(mapPath).reshape(len(mapPath),2) == end.T)[0]
+#        new_index = extractDuplicate(no.tolist())[0]
+#        print(new_index)
+#        if (new_index-end_index)<=0:
+#            print(new_index-end_index)
+#            end_index = new_index
+#        else:
+#            break
+#            y = solve_ivp(f_ode_45, (0,100),(x0.T).tolist()[0],method='RK45',
+#                          args=(B,ax,mapPath,True))
+#    
     plt.show()

@@ -142,71 +142,69 @@ class Graph:
             self.addEdgeFromCoords(summit[2].tolist(),summit[0].tolist())
         plt.title("Delaunay triangulation for the associated map")
             
-    def addObstacleAtCoords(self,x,y,r):
-        """
-        changes to "infinte" value of all edges passing through the obstacle.
-        E is the starting point of the ray => (x1,y1)
-        L is the end point of the ray => (x2,y2)
-        C is the center of the circle => (x,y)
-        r is the radius of the circle
-        The intersection is found by the parametric equations:
-        Px = Ex + tdx      and      Py = Ey + tdy
-        plugged into the circle equation :
-        (x - h)2 + (y - k)2 = r2,  with (h,k) = center of circle.
-        This leads to solving the following quadratic equation :
-        t2*( d DOT d ) + 2t*( f DOT d ) + ( f DOT f - r2 ) = 0
-        """
-
-        for key in G.edges.keys():
-            x1,y1 = self.vertices[key[0]]
-            x2,y2 = self.vertices[key[1]]
-            # Direction vector of ray, from start to end
-            d = np.array([x2-x1,y2-y1]) 
-            # Vector from center sphere to ray start 
-            f = np.array([x1-x,y1-y])
-            
-            a = d@(d.T)
-            b = 2*f@(d.T)
-            c = f@(f.T) - r*r
-            discriminant = b*b -4*a*c
-            if (discriminant<0):
-                print("no intersection")
-            else :
-                discriminant = sqrt(discriminant)
-                t1 = (-b - discriminant)/(2*a);
-                t2 = (-b + discriminant)/(2*a);
-                print("ok   ("+str(x1)+","+str(y1)+")  ("+str(x2)+","+str(y2)+") + t1: "+str(t1)+"  t2: "+str(t2))
-                if ((t1>1 and t2>1) or (t1<0 and t2<0)) : # the circle does not touch the circle
-                    pass
-                elif (t1<0 and t2>1): # the segment is completely inside the circle
-                    print(key)
-                    self.edges[key] = float('inf')
-                else:
-                    inter2_x = x1 + t2*d[0] 
-                    inter2_y = y1 + t2*d[1] 
-                    inter1_x = x1 + t1*d[0] 
-                    inter1_y = y1 + t1*d[1]
-                    print(key)
-                    self.edges[key] = float('inf')
-                    if t1<0 : # one intersection with the segment
-                        print(inter2_x,inter2_y)
-                        #return (inter2_x,inter2_y)
-                        plt.plot(inter2_x,inter2_y)
-                    if t2>1:  # one intersection with the segment
-                        print(inter1_x,inter1_y)
-                        #return(inter1_x,inter1_y)
-                        plt.plot(inter1_x,inter1_y)
-                    else:   # two intersections with the segment
-                        print(inter1_x,inter1_y,inter2_x,inter2_y)
-                        #return(inter1_x,inter1_y,inter2_w,inter2_y)
+#    def addObstacleAtCoords(self,x,y,r):
+#        """
+#        changes to "infinte" value of all edges passing through the obstacle.
+#        E is the starting point of the ray => (x1,y1)
+#        L is the end point of the ray => (x2,y2)
+#        C is the center of the circle => (x,y)
+#        r is the radius of the circle
+#        The intersection is found by the parametric equations:
+#        Px = Ex + tdx      and      Py = Ey + tdy
+#        plugged into the circle equation :
+#        (x - h)2 + (y - k)2 = r2,  with (h,k) = center of circle.
+#        This leads to solving the following quadratic equation :
+#        t2*( d DOT d ) + 2t*( f DOT d ) + ( f DOT f - r2 ) = 0
+#        """
+#        for key in G.edges.keys():
+#            x1,y1 = self.vertices[key[0]]
+#            x2,y2 = self.vertices[key[1]]
+#            # Direction vector of ray, from start to end
+#            d = np.array([x2-x1,y2-y1]) 
+#            # Vector from center sphere to ray start 
+#            f = np.array([x1-x,y1-y])
+#            
+#            a = d@(d.T)
+#            b = 2*f@(d.T)
+#            c = f@(f.T) - r*r
+#            discriminant = b*b -4*a*c
+#            if (discriminant<0):
+#                print("no intersection")
+#            else :
+#                discriminant = sqrt(discriminant)
+#                t1 = (-b - discriminant)/(2*a);
+#                t2 = (-b + discriminant)/(2*a);
+#                print("ok   ("+str(x1)+","+str(y1)+")  ("+str(x2)+","+str(y2)+") + t1: "+str(t1)+"  t2: "+str(t2))
+#                if ((t1>1 and t2>1) or (t1<0 and t2<0)) : # the circle does not touch the circle
+#                    pass
+#                elif (t1<0 and t2>1): # the segment is completely inside the circle
+#                    print(key)
+#                    self.edges[key] = float('inf')
+#                else:
+#                    inter2_x = x1 + t2*d[0] 
+#                    inter2_y = y1 + t2*d[1] 
+#                    inter1_x = x1 + t1*d[0] 
+#                    inter1_y = y1 + t1*d[1]
+#                    print(key)
+#                    self.edges[key] = float('inf')
+#                    if t1<0 : # one intersection with the segment
+#                        print(inter2_x,inter2_y)
+#                        #return (inter2_x,inter2_y)
+#                        plt.plot(inter2_x,inter2_y)
+#                    if t2>1:  # one intersection with the segment
+#                        print(inter1_x,inter1_y)
+#                        #return(inter1_x,inter1_y)
+#                        plt.plot(inter1_x,inter1_y)
+#                    else:   # two intersections with the segment
+#                        print(inter1_x,inter1_y,inter2_x,inter2_y)
+#                        #return(inter1_x,inter1_y,inter2_w,inter2_y)
                         
-    def addPolygoneObstacleAtCoords(self,list_x,list_y):
+    def addPolygoneObstacleAtCoords(self,list_x,list_y,safety_distance = 0.2):
         """
         proposes an alternative path if one of the vertex touches the obstacle.
         The obstacle is assumed to be convex, and to have no vertex inside it.
         """
         plt.figure(0)
-        safety_distance = 0.2
         distance  = sqrt(2*(safety_distance**2))
         new_poly = []
         n = len(list_x)
@@ -223,10 +221,12 @@ class Graph:
             ynew = ya+distance*sin(middle_angle)
             new_poly.append((xnew,ynew))
         plt.plot(list_x + [list_x[0]], list_y + [list_y[0]], color ="black")
-        #plt.plot([p[0] for p in new_poly]+[new_poly[0][0]],[p[1] for p in new_poly]+[new_poly[0][1]], marker = 'o')
+        plt.plot([p[0] for p in new_poly]+[new_poly[0][0]],[p[1] for p in new_poly]+[new_poly[0][1]])
+        # remove vertices that are inside the inflated polygon
+        #TODO
         # remove from dictionnary edges that intersect with the obstacle
         keysToTransform = []
-        for key in G.edges.keys():
+        for key in self.edges.keys():
             x1,y1 = self.vertices[key[0]]
             x2,y2 = self.vertices[key[1]]
             for i in range(n+1):
@@ -338,12 +338,12 @@ class Graph:
         n = len(self.path)
         points = [(self.path[i],self.path[(i+1)%n]) for i in range(n)]
         for i in range(len(points)):
-            print(self.path)
             if points[i] in self.edges.keys():
                 pass
-            else :
-                for k in range(len(self.subpath_obstacle[points[i]])):
-                    self.path.insert(i+1+k, self.subpath_obstacle[points[i]][k])
+            elif points[i] in self.subpath_obstacle.keys():
+                nk = len(self.subpath_obstacle[points[i]])
+                for k in range(nk):
+                    self.path.insert(i+1+k, self.subpath_obstacle[points[i]][nk-k-1])
             
     def getAssociatedNumber(self,x,y):
         """
@@ -383,7 +383,10 @@ class Graph:
         # Exception : back to the begining
         if self.getDist(path[-1],path[0]) == float('inf'):
             x0,y0 = self.vertices[path[0]]
-            xEnd,yEnd = self.vertices[path[-1]]
+            try :
+                xEnd,yEnd = self.vertices[path[-1]]
+            except:
+                xEnd,yEnd = path[-1]
             value += euclideanDistance((x0,y0),(xEnd,yEnd))
         else:
             value += self.getDist(path[-1],path[0])
@@ -411,11 +414,14 @@ class Graph:
         plt.title("Graph before resolution")
             
          
-    def plotPath(self,gradual=False):
+    def plotPath(self,gradual=False, obstacle_x=[], obstacle_y=[]):
         """
         gives a graphical representation of the path.
         """
         plt.figure(1,figsize=(12,4))
+        if len(self.edges_obstacle)>0 :
+            self.addObstacleIntoFinalPath()
+            plt.plot(obstacle_x+[obstacle_x[0]],obstacle_y+[obstacle_y[0]],"blue")
         if len(self.path_evolution)!=0:
             plt.subplot(121)
         x,y = [],[]
@@ -676,6 +682,18 @@ def euclideanDistance(point1,point2):
     l = sqrt((point1[0]-point2[0])**2+(point1[1]-point2[1])**2)
     return(l)
       
+def isInsidePolygon(n,Vx,Vy,x,y):
+    """
+    Verifies is a given point at coords (x,y) is inside a given polygon (Vx,Vy)
+    of n summits (based upon the Jordan curve theorem).
+    """
+    c = False
+    for i in range(0,n):
+        j = (i-1)%n
+        if (((Vy[i]>y)!=(Vy[j]>y)) and 
+            (x < (Vx[j]-Vx[i])*(y-Vy[i])/(Vy[j]-Vy[i])+Vx[i])):
+            c = not(c)
+    return c 
         
 if __name__=='__main__':
     
@@ -683,7 +701,15 @@ if __name__=='__main__':
     G.defineWind(angle=pi/2)
     
     #square
-    x,y = [0,1,3,2.5,6,5,4],[0,1,6,1,0.5,4,1]
+   # x,y = [0,1,3,2.5,6,5,4],[0,1,6,1,0.5,4,1]
+    
+    #Grid
+    nb_of_points = 100
+    GPSpoints = np.array([[0,0],[0,100],[100,100],[100,0],[0,0]])
+    A = Area(nb_of_points,GPSpoints[0,:],GPSpoints,"grid")
+    A.placeMeasurementPoints()
+    x = A.points_lat.reshape(nb_of_points).tolist()
+    y = A.points_lon.reshape(nb_of_points).tolist()
     
     #round
 #    center, beginning = [1,1],[4,4]
@@ -693,29 +719,24 @@ if __name__=='__main__':
 
     G.addVertices(x,y)
 
-    G.addEdgesAll()
-    #G.addObstacleAtCoords(x=1,y=2,r=0.5)
-#    fig, ax = plt.subplots()
-#    ax.add_artist(plt.Circle((1,2),0.5))
+
+    #G.addEdgesAll()
+    G.addEdgesDelaunay()
+
+    #obx,oby = [3,3.25,3.5,3.5,3],[0.5,0,0.5,2,2]
+    obx,oby = [2.5,7.5,7.5,5,2.5],[0,0,15,17,15]
+    G.addPolygoneObstacleAtCoords(obx,oby,safety_distance = 1.5)
     
-    G.addPolygoneObstacleAtCoords([3,3.25,3.5,3.5,3],[0.5,0,0.5,2,2])
-    
-#    G.addEdgesAll()
+
 #    G.solveRandom(100000,show_evolution=True)
-    
-#    G.addEdgesAll()
 #    G.solveLoop(100,show_evolution=True)
-    
-#    G.addEdgesDelaunay()
     G.solveNearestNeighbour()
-    
-#    G.addEdgesAll()
 #    G.solveGenetic(temperature = 1000000, pop_size = 20, show_evolution=True)
     
     
     G.plot()
-    #G.addObstacleIntoFinalPath()
-    G.plotPath(gradual=True)
+    G.plotPath(gradual=True,obstacle_x = obx, obstacle_y = oby)
+    plt.figure(1)
     plt.show()
 
     #TODO : modify algorithms so it works with circle areas
