@@ -17,20 +17,35 @@ from area_generator import *
 
 class Graph:
     """
-    A class to modelize an asymetrical directed graph of various verticies.
+    A class to model an asymmetrical directed graph of various vertices.
     
     Attributes
     ----------
-    vertices : organized list of tuple
-        the coordinates of all vertices, with the i-th element the coordoonates
+    contour:
+        ..x2 array of floats or ..x2 list of floats
+        the coordinates of the area's points that contains the graph (not 
+        necessary if the shape of the area is convex).
+    vertices : organized list of tuples
+        the coordinates of all vertices, with the i-th element the coordinates
         (x,y) for the vertex number i.
-    edges : dictionnary with two keys
+    edges : dictionary of integers with two keys
         the key (u,v) with float value d indicates the distance d to go 
-        from vextex u to v.If there is no existing distance between two 
+        from vertex u to v.If there is no existing distance between two 
         vertices, they are unreachables.
-    path : list of integers
+    edges_obstacle : dictionary of integers with two keys 
+        the key (u,v) with float value d indicates the distance d of the 
+        alternative path chosen to go from vertex u to v. If the dictionary
+        is empty, either there is no obstacle, or it does not interfere with 
+        initially existing edges.
+    path : list of integers (absence of obstacle)
+           list of integers and tuples of floats (otherwise)
         the list with the optimal known path
-    wind_angle : integer betwenn 0 and 2 pi rad
+    subpath_obstacle : dictionary of lists of tuples with two keys
+        the key (u,v) is linked to the alternative path chosen to go from 
+        vertex u to vertex v avoiding an obstacle. eg:
+            {(u, v): [(x1, y1), (x2,y2)],
+             (u, v): [(x2,y2), (x1,y1)]}
+    wind_angle : integer between 0 and 2 pi rad
         current direction of the wind, with respect to unit circle convention
         north wind : pi/2 rad / west wind : 0 rad / south wind : 3pi/2 rad.
     wind_speed : float
@@ -46,7 +61,8 @@ class Graph:
         graphical representation.
     
     """
-    def __init__(self):
+    def __init__(self,areaContour=[]):
+        self.contour = areaContour
         self.vertices = []
         self.edges = {}
         self.edges_obstacle = {}
@@ -61,7 +77,7 @@ class Graph:
         
     def defineWind(self,angle,speed=5):
         """
-        sets the wind characteritcs that will produce a penalty in addEdge() 
+        sets the wind characteristics that will produce a penalty in addEdge() 
         method.
         """
         self.wind_angle = angle
@@ -75,7 +91,7 @@ class Graph:
         
     def addVertices(self,list_x,list_y):
         """
-        adds sevral vertices at a times.
+        adds several vertices at a times.
         """
         for i in range(len(list_x)):
             self.addSingleVertex(list_x[i],list_y[i])
@@ -113,22 +129,35 @@ class Graph:
     def addEdgesAll(self):
         """
         determines automatically weight for all edges between all vertices,
-        using the eclidean distance as value.
+        with regards to the area configuration, using the euclidean distance as 
+        value.
         """
+        if self.contour != []:
+            x_area = [self.contour[i][0] for i in range(len(self.contour))]
+            y_area = [self.contour[i][1] for i in range(len(self.contour))]
         for i in range(len(self.vertices)):
             for j in range(len(self.vertices)):
                 if i!=j:
                     xa,ya = self.vertices[i]
                     xb,yb = self.vertices[j]
-                    dist = euclideanDistance((xa,ya),(xb,yb))
-                    self.addEdgeFromCoords([xa,ya],[xb,yb],dist)
-                    self.addEdgeFromCoords([xb,yb],[xa,ya],dist)
+                    intersect = False
+                    if self.contour !=[]:
+                        for k in range(len(self.contour)-1):
+                            intersect = intersect or doIntersect((x_area[k],y_area[k]),
+                                       (x_area[k+1],y_area[k+1]),(xa,ya),(xb,yb))
+                    if not(intersect):
+                        dist = euclideanDistance((xa,ya),(xb,yb))
+                        self.addEdgeFromCoords([xa,ya],[xb,yb],dist)
+                        self.addEdgeFromCoords([xb,yb],[xa,ya],dist)
                     
     def addEdgesDelaunay(self):
         """
         determines automatically weight for edges defined by a Delaunay
-        triangulation.
+        triangulation, with regards to the area configuration.
         """
+        if self.contour != []:
+            x_area = [self.contour[i][0] for i in range(len(self.contour))]
+            y_area = [self.contour[i][1] for i in range(len(self.contour))]
         plt.figure(1)
         x = [k[0] for k in self.vertices]
         y = [k[1] for k in self.vertices]
@@ -137,9 +166,16 @@ class Graph:
         plt.triplot(points[:,0], points[:,1],tri.simplices.copy(),c='#BBBBBB')
         triangles = points[tri.simplices]
         for summit in triangles :
-            self.addEdgeFromCoords(summit[0].tolist(),summit[1].tolist())
-            self.addEdgeFromCoords(summit[1].tolist(),summit[2].tolist())
-            self.addEdgeFromCoords(summit[2].tolist(),summit[0].tolist())
+            for i in [0,1,2]:
+                xa,ya = summit[i%3].tolist()
+                xb,yb = summit[(i+1)%3].tolist()
+                intersect = False
+                if self.contour != []:
+                    for k in range(len(self.contour)-1):
+                        intersect = intersect or doIntersect((x_area[k],y_area[k]),
+                                       (x_area[k+1],y_area[k+1]),(xa,ya),(xb,yb))
+                if not(intersect):
+                    self.addEdgeFromCoords((xa,ya),(xb,yb))
         plt.title("Delaunay triangulation for the associated map")
             
 #    def addObstacleAtCoords(self,x,y,r):
@@ -201,8 +237,9 @@ class Graph:
                         
     def addPolygoneObstacleAtCoords(self,list_x,list_y,safety_distance = 0.2):
         """
-        proposes an alternative path if one of the vertex touches the obstacle.
-        The obstacle is assumed to be convex, and to have no vertex inside it.
+        proposes an alternative path if one of the vertices touches the 
+        obstacle. The obstacle is assumed to be convex, and to have no vertex 
+        inside it.
         """
         plt.figure(0)
         distance  = sqrt(2*(safety_distance**2))
@@ -241,7 +278,7 @@ class Graph:
             
     def findAlternativePath(self,key,polyCoords):
         """
-        determines the shortest distance between two given point in key, 
+        determines the shortest distance between two given points in key, 
         bypassing the obstacle with a safety distance from it.
         """
         x1,y1 = self.vertices[key[0]]
@@ -264,7 +301,7 @@ class Graph:
             if not(intersection2):
 #                plt.plot([x2,polyCoords[point][0]],[y2,polyCoords[point][1]],'.-',color="orange")
                 vertex2_altern.append(point)
-        # comparing legnth of projection of each vertex on ((x1,y1),(x2,y2)) line.
+        # comparing length of projection of each vertex on ((x1,y1),(x2,y2)) line.
         for point in vertex1_altern:
             angle = atan2(polyCoords[point][1]-y1,polyCoords[point][0]-x1)
             dist =  euclideanDistance(polyCoords[point],(x1,y1))
@@ -286,7 +323,7 @@ class Graph:
             dist = euclideanDistance(polyCoords[link1],(x1,y1)) + euclideanDistance(polyCoords[link1],(x2,y2))
             return(dist,[link1])
         else:
-            # selecting best path on polygon passing by link1
+            # selecting best path on polygon, passing by link1
             length_other_path1 = float('inf')
             other_path1 = []
             for point in vertex2_altern :
@@ -304,7 +341,7 @@ class Graph:
                     else:
                         length_other_path1 = lccw
                         other_path1 = deepcopy(pathCCW)
-            # selecting best path on polygon passing by link2
+            # selecting best path on polygon, passing by link2
             length_other_path2 = float('inf')
             other_path2 = []
             for point in vertex1_altern :
@@ -335,6 +372,15 @@ class Graph:
                 return(length_other_path2,other_path2)
                 
     def addObstacleIntoFinalPath(self):
+        """
+        completes the final path list with the coordinates of alternative 
+        subpaths used to avoid an obstacle. The coordinates of the points of
+        these subpaths are directly added between each pair of vertices whose 
+        initial edge was touching the obstacle.
+        eg:
+            path = [5,6,8,9,1,2,0,7,4,3]   becomes
+            path = [5,6,8,(x1,y1),,9,1,2,0,7,(x2,y2),4,3]
+        """
         n = len(self.path)
         points = [(self.path[i],self.path[(i+1)%n]) for i in range(n)]
         for i in range(len(points)):
@@ -375,7 +421,7 @@ class Graph:
         
     def getPathLength(self, path):
         """
-        calculs the current path lenght
+        calculates the current path length
         """
         value = 0
         for i in range(len(self.vertices)-1):
@@ -394,13 +440,20 @@ class Graph:
         return(value)
         
     def plot(self):
+        """
+        shows the graph before starting any resolution. 
+        The existing vertices, feasible edges, area's contour and obtacles are
+        shown.
+        """
         plt.figure(0,figsize=(12,4))
+        # exiting vertices and edges
         for key in self.edges.keys():
             x1,y1 = self.vertices[key[0]]
             x2,y2 = self.vertices[key[1]]
             plt.plot([x1,x2],[y1,y2],linestyle='dotted',color="lightgrey")
             plt.plot(x1,y1,marker='o',color="cyan")
             plt.plot(x2,y2,marker='o',color="cyan")
+        # edge alternatives due to obstacles
         for key in self.edges_obstacle.keys():
             x1,y1 = self.vertices[key[0]]
             x2,y2 = self.vertices[key[1]]
@@ -410,13 +463,22 @@ class Graph:
                 plt.plot(p1[0],p1[1],marker='o',color="pink")
                 if i!=len(self.subpath_obstacle[(key[0],key[1])]):
                     plt.plot([p1[0],p2[0]],[p1[1],p2[1]],linestyle='dotted',color="salmon")
-            plt.plot((x1,self.subpath_obstacle[(key[0],key[1])][i][0]),(y1,self.subpath_obstacle[(key[0],key[1])][i][1]),linestyle='dotted',color="salmon")
+            plt.plot((x1,self.subpath_obstacle[(key[0],key[1])][i][0]),
+                     (y1,self.subpath_obstacle[(key[0],key[1])][i][1]),
+                     linestyle='dotted',color="salmon")
+         # area contour
+        if self.contour != []:
+            plt.plot(self.contour[:,0],self.contour[:,1],'g--')
         plt.title("Graph before resolution")
             
          
     def plotPath(self,gradual=False, obstacle_x=[], obstacle_y=[]):
         """
-        gives a graphical representation of the path.
+        gives a graphical representation of the path (after resolution).
+        The obstacle can also be shown if its coordinates are given.
+        The "gradual" boolean enables a gradual coloring of the path to
+        identify starting (green) and ending (red) points as well as the general 
+        direction chosen by the solver to deal with wind.
         """
         plt.figure(1,figsize=(12,4))
         if len(self.edges_obstacle)>0 :
@@ -447,6 +509,10 @@ class Graph:
         # wind arrow
         if self.wind_angle != None:
             self.draw_arrow(max_X+0.1*max_X,max_Y+0.1*max_Y,self.wind_angle,0.03*(max_X-min_X),self.wind_speed,'blue')
+        #area
+        if self.contour != []:
+            plt.plot(self.contour[:,0],self.contour[:,1],'g--')
+        #title
         plt.title('Grah solved by {} in {:.1f} sec : path of {:.2f}'.format(self.solver,self.time_solved,self.getPathLength(self.path)))
         plt.xlabel("X")
         plt.ylabel("Y")
@@ -605,6 +671,9 @@ class Graph:
         self.time_solved = time.time()-timer
         
 def onSegment(p, q, r): 
+    """
+    ckecks if point q in on segment [p,r]
+    """
     if ( (q[0] <= max(p[0], r[0])) and (q[0] >= min(p[0], r[0])) and 
            (q[1] <= max(p[1], r[1])) and (q[1] >= min(p[1], r[1]))): 
         return True
@@ -653,8 +722,8 @@ def doIntersect(p1,q1,p2,q2):
 
 def isClockwise(coords):
     """
-    detects in which sens a convex polygon coords are ordered (clockwise or
-    counter-clockwise).
+    detects in which sens a convex polygon coordinates are ordered (clockwise 
+    or counter-clockwise).
     """
     res = 0
     for i in range(len(coords)):
@@ -664,7 +733,7 @@ def isClockwise(coords):
     
 def getSliceSequences(i,j,n):
     """
-    returns 2 slieing sequences (from left to right and right to left) for two 
+    returns 2 sliding sequences (from left to right and right to left) for two 
     indices of a n-size list. The two resulting sequences begin by i and end by 
     j.
     """
@@ -697,35 +766,41 @@ def isInsidePolygon(n,Vx,Vy,x,y):
         
 if __name__=='__main__':
     
-    G = Graph()
-    G.defineWind(angle=pi/2)
-    
     #square
-   # x,y = [0,1,3,2.5,6,5,4],[0,1,6,1,0.5,4,1]
+    x,y = [0,1,3,2.5,6,5,4],[0,1,6,1,0.5,4,1]
     
     #Grid
-    nb_of_points = 100
-    GPSpoints = np.array([[0,0],[0,100],[100,100],[100,0],[0,0]])
-    A = Area(nb_of_points,GPSpoints[0,:],GPSpoints,"grid")
-    A.placeMeasurementPoints()
-    x = A.points_lat.reshape(nb_of_points).tolist()
-    y = A.points_lon.reshape(nb_of_points).tolist()
+#    nb_of_points = 100
+#    GPSpoints = np.array([[0,0],[0,100],[100,100],[100,0],[0,0]])
+#    A = Area(nb_of_points,GPSpoints[0,:],GPSpoints,"grid")
+#    A.placeMeasurementPoints()
+#    x = A.points_lat.reshape(nb_of_points).tolist()
+#    y = A.points_lon.reshape(nb_of_points).tolist()
     
     #round
 #    center, beginning = [1,1],[4,4]
 #    C = Area(65,beginning,beginning,"circle",center, angle_division=16)
 #    C.placeMeasurementPoints()
 #    x,y = C.points_lat, C.points_lon
+    
+    #Coastal
+    GPSpoints = np.array([[1,1],[10,1],[10,10],[9,9],[8,9],[7,10.8],[6,10.8],[6.5,10],[6,8],[5,11],[4,9],[3,8.5],[2,11],[1,10],[1,1]])
+    Coast = Area(100,GPSpoints[0,:],GPSpoints,"coastal")
+    Coast.placeMeasurementPoints()
+    #Coast.generateMap()
+    x,y = Coast.points_lat, Coast.points_lon
 
+    G = Graph(Coast.contour)
+    G.defineWind(angle=pi/2)
     G.addVertices(x,y)
 
 
     #G.addEdgesAll()
     G.addEdgesDelaunay()
 
-    #obx,oby = [3,3.25,3.5,3.5,3],[0.5,0,0.5,2,2]
-    obx,oby = [2.5,7.5,7.5,5,2.5],[0,0,15,17,15]
-    G.addPolygoneObstacleAtCoords(obx,oby,safety_distance = 1.5)
+    obx,oby = [3,3.25,3.5,3.5,3],[0.5,0,0.5,2,2]
+    #obx,oby = [2.5,7.5,7.5,5,2.5],[0,0,15,17,15]
+    #G.addPolygoneObstacleAtCoords(obx,oby,safety_distance = 0.2)
     
 
 #    G.solveRandom(100000,show_evolution=True)
@@ -735,8 +810,6 @@ if __name__=='__main__':
     
     
     G.plot()
-    G.plotPath(gradual=True,obstacle_x = obx, obstacle_y = oby)
+    G.plotPath(gradual=True)#,obstacle_x = obx, obstacle_y = oby)
     plt.figure(1)
     plt.show()
-
-    #TODO : modify algorithms so it works with circle areas

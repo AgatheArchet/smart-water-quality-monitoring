@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from random import seed,random
 import time
+from scipy.spatial import ConvexHull
+from copy import deepcopy
 
 class Area:
     """
@@ -35,7 +37,8 @@ class Area:
     
     
     """
-    def __init__(self, nb_of_measurement_points, beginning, delimitation_points, shape, center=None, angle_division=8):
+    def __init__(self, nb_of_measurement_points, beginning, delimitation_points, 
+                 shape, center=None, angle_division=8):
          self.nb_points = nb_of_measurement_points 
          self.contour = delimitation_points
          self.beginning = beginning
@@ -132,11 +135,11 @@ def isInsidePolygon(n,Vx,Vy,x,y):
         
 if __name__=='__main__':
     
-    GPSpoints = np.array([[1,1],[1,6],[6,6],[6,1],[1,1]])
-    A = Area(100,GPSpoints[0,:],GPSpoints,"grid")
-    A.placeMeasurementPoints()
-    A.generateFile()
-    A.generateMap()
+#    GPSpoints = np.array([[1,1],[1,6],[6,6],[6,1],[1,1]])
+#    A = Area(100,GPSpoints[0,:],GPSpoints,"grid")
+#    A.placeMeasurementPoints()
+#    A.generateFile()
+#    A.generateMap()
 
 #    center, beginning = [1,1],[4,4]
 #    C = Area(65,beginning,beginning,"circle",center, angle_division=16)
@@ -144,8 +147,19 @@ if __name__=='__main__':
 #    C.generateFile()
 #    C.generateMap()
     
-#    GPSpoints = np.array([[1,1],[10,1],[10,10],[9,9],[8,9],[7,10.8],[6,10.8],[6.5,10],[6,8],[5,11],[4,9],[3,8.5],[2,11],[1,10],[1,1]])
-#    M = Area(100,GPSpoints[0,:],GPSpoints,"coastal")
-#    M.placeMeasurementPoints()
-#    M.generateMap()
+    GPSpoints = np.array([[1,1],[10,1],[10,10],[9,9],[8,9],[7,10.8],[6,10.8],[6.5,10],[6,8],[5,11],[4,9],[3,8.5],[2,11],[1,10],[1,1]])
+    Coast = Area(100,GPSpoints[0,:],GPSpoints,"coastal")
+    Coast.placeMeasurementPoints()
+    Coast.generateMap()
     
+    hull = ConvexHull(GPSpoints)
+    for simplex in hull.simplices:
+        plt.plot(GPSpoints[simplex, 0], GPSpoints[simplex, 1], '-')
+        
+    convexMap = deepcopy(GPSpoints).tolist()
+    for simplex in hull.simplices:
+        print(GPSpoints[simplex[0]])
+#        if GPSpoints[simplex[0]] in convexMap:
+#            convexMap.remove(GPSpoints[simplex[0]])
+#        if GPSpoints[simplex[1]] in convexMap:
+#            convexMap.remove(GPSpoints[simplex[1]])
