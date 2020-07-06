@@ -146,27 +146,32 @@ if __name__=='__main__':
     
 #---------------Complete with the boat's characteristics-----------------------
 
-    # Converting the path for the map
-#    mapPath = [np.array([[300*list(G.vertices[k])[0]],
-#                          [300*list(G.vertices[k])[1]]]) for k in G.path]
-#    start = mapPath[0]
-#    end = mapPath[-1]
+    #Converting the path for the map
+    mapPath, factor = [],300
+    for i in G.path:
+        if isinstance(i, tuple):
+            mapPath.append(np.array([[factor*i[0]],[factor*i[1]]]))   
+        else:
+            mapPath.append(np.array([[factor*list(G.vertices[i])[0]],
+                                       [factor*list(G.vertices[i])[1]]]))
+    start = mapPath[0]
+    end = mapPath[-1]
     
     # Constructing the autonomous sailboat
-#    x0= array([[300,125,-pi,0.2,0]]).T  #x=(x,y,θ,v,w)
-#    a_tw = wind_speed    # true wind force
-#    ψ_tw = wind_angle    # true wind angle
-#    r = 10      # maximale acceptable distance from target line
-#    ζ = pi/4    # closed hauled angle for the no-go zone
-#    δrmax = 1   # maximal rudder angle
-#    β = pi/4    # angle of the sail in crosswind 
-#    B = Boat(x0,a_tw, ψ_tw, r, ζ, δrmax, β)
+    x0= array([[-5,-5,pi,0.2,0]]).T  #x=(x,y,θ,v,w)
+    a_tw = wind_speed    # true wind force
+    ψ_tw = wind_angle    # true wind angle
+    r = 10      # maximale acceptable distance from target line
+    ζ = pi/4    # closed hauled angle for the no-go zone
+    δrmax = 1   # maximal rudder angle
+    β = pi/4    # angle of the sail in crosswind 
+    B = Boat(x0,a_tw, ψ_tw, r, ζ, δrmax, β)
     
     # Matplotlib parameters    
-#    dt = 0.1
-#    ax=init_figure(mapPath)
-#    plot_frequency = 15
-#    end_index = len(mapPath)
+    dt = 0.1
+    ax=init_figure(mapPath)
+    plot_frequency = 50  # every x time period
+    end_index = len(mapPath)
     
 #-----------------Uncomment the numerical integration--------------------------
     
@@ -184,19 +189,19 @@ if __name__=='__main__':
 #            break
                 
     # Runge-Kutta 45
-#    while True:
-#        y = solve_ivp(f_ode_45, (0,plot_frequency),(x0.T).tolist()[0],method='RK45',
-#                      args=(B,ax,mapPath,True))
-#        x0 = y.y[:,-1].reshape((5,1))
-#        no = np.where(array(mapPath).reshape(len(mapPath),2) == end.T)[0]
-#        new_index = extractDuplicate(no.tolist())[0]
-#        print(new_index)
-#        if (new_index-end_index)<=0:
-#            print(new_index-end_index)
-#            end_index = new_index
-#        else:
-#            break
-#            y = solve_ivp(f_ode_45, (0,100),(x0.T).tolist()[0],method='RK45',
-#                          args=(B,ax,mapPath,True))
+    while True:
+        y = solve_ivp(f_ode_45, (0,plot_frequency),(x0.T).tolist()[0],method='RK45',
+                      args=(B,ax,mapPath,True))
+        x0 = y.y[:,-1].reshape((5,1))
+        no = np.where(array(mapPath).reshape(len(mapPath),2) == end.T)[0]
+        new_index = extractDuplicate(no.tolist())[0]
+        print(new_index)
+        if (new_index-end_index)<=0:
+            print(new_index-end_index)
+            end_index = new_index
+        else:
+            break
+            y = solve_ivp(f_ode_45, (0,100),(x0.T).tolist()[0],method='RK45',
+                          args=(B,ax,mapPath,True))
 #    
     plt.show()
