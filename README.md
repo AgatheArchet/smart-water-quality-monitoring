@@ -1,5 +1,8 @@
 # smart-water-quality-monitoring
-Project carried out as part of an internship on autonomous sailboats
+Project carried out as part of an internship on autonomous sailboats.  
+* First goal: the boat must be equiped with various sensors to analyze the quality of water in a certain area. Part 1 explains how the sensors are conneted and their data exploited, part 2 details the communication strategy used between the boat and the sensors kit, and part 3 deals with final data processing on the boat.
+* Second goal: the boat has to make measurements at various point on a map, whith constraints linked to the environment.  
+
 
 ## Part 1 : measurements on Arduino Bluno
 
