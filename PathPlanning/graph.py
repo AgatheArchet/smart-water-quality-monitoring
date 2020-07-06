@@ -68,14 +68,14 @@ class Graph:
         self.edges_obstacle = {}
         self.path = None
         self.subpath_obstacle = {}
-        self.wind_angle = None
-        self.wind_speed = None
+        self.wind_angle = 0
+        self.wind_speed = 0
         self.solver = None
         self.time_solved = None
         self.path_evolution = []
         self.time_evolution = []
         
-    def defineWind(self,angle,speed=5):
+    def defineWind(self,angle=0,speed=0):
         """
         sets the wind characteristics that will produce a penalty in addEdge() 
         method.
@@ -507,7 +507,7 @@ class Graph:
             for i in range(len(x)-1):
                 plt.plot([x[i],x[i+1]],[y[i],y[i+1]], 'x-',color=(i/len(x),(1-i/len(x)),0))
         # wind arrow
-        if self.wind_angle != None:
+        if self.wind_speed != 0:
             self.draw_arrow(max_X+0.1*max_X,max_Y+0.1*max_Y,self.wind_angle,0.03*(max_X-min_X),self.wind_speed,'blue')
         #area
         if self.contour != []:
@@ -610,7 +610,8 @@ class Graph:
                     min_vertex = neighbour
             visited_vertices.append(min_vertex)
             unvisited_vertices.remove(min_vertex)
-        if abs(atan2(self.vertices[visited_vertices[-1]][1],self.vertices[visited_vertices[-1]][0]) -self.wind_angle)<pi/12:
+        if (abs(atan2(self.vertices[visited_vertices[-1]][1],self.vertices[visited_vertices[-1]][0]) -self.wind_angle-pi)%(2*pi)<pi/12 or
+            abs(atan2(self.vertices[visited_vertices[1]][1],self.vertices[visited_vertices[1]][0]) -self.wind_angle-pi)%(2*pi)<pi/12):
             self.path = visited_vertices[::-1]
         else:
             self.path = visited_vertices
@@ -753,7 +754,7 @@ def euclideanDistance(point1,point2):
       
 def isInsidePolygon(n,Vx,Vy,x,y):
     """
-    Verifies is a given point at coords (x,y) is inside a given polygon (Vx,Vy)
+    verifies is a given point at coords (x,y) is inside a given polygon (Vx,Vy)
     of n summits (based upon the Jordan curve theorem).
     """
     c = False
@@ -791,7 +792,7 @@ if __name__=='__main__':
     x,y = Coast.points_lat, Coast.points_lon
 
     G = Graph(Coast.contour)
-    G.defineWind(angle=pi/2)
+    G.defineWind(angle=pi/2,speed=5)
     G.addVertices(x,y)
 
 
