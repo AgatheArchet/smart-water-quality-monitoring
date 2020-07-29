@@ -15,35 +15,41 @@ class Grid:
     
     def __init__(self, distMatrix):
         
-        # create a 8" x 8" board
-        gridsize = (2,3)
-        fig = plt.figure(figsize=([13, 8]))
-        plt.suptitle("Q-Learning algorithm strategy", fontsize=20)
-        
-        # main structures
-        self.ax1 = plt.subplot2grid(gridsize, (0, 0), colspan=2, rowspan=2)
-        self.ax2 = plt.subplot2grid(gridsize, (0, 2))
-        self.ax3 = plt.subplot2grid(gridsize, (1, 2))
-        self.ax3.set_title("Q-Table")
-        self.ax2.axes.get_xaxis().set_visible(False)
-        self.ax2.axes.get_yaxis().set_visible(False)
-        self.ax3.set_title("Score through time")
-        self.ax3.axes.get_xaxis().set_visible(False)
-        self.ax3.axes.get_yaxis().set_visible(False)
-        
         # matrix of the map
         self.Map = distMatrix
         self.xmin = 0
         self.xmax = len(distMatrix[0])
         self.ymin = 0
         self.ymax = len(distMatrix)
+        
+        # create a 8" x 8" board
+        gridsize = (3,3)
+        self.fig = plt.figure(figsize=([10, 6]))
+        # main structures
+        self.ax1 = plt.subplot2grid(gridsize, (0, 0), colspan=2, rowspan=3)
+        self.ax2 = plt.subplot2grid(gridsize, (0, 2), colspan=1, rowspan=2)
+        self.ax3 = plt.subplot2grid(gridsize, (2, 2))
+        self.ax1.set_title("Q-Learning algorithm strategy", fontsize=15)
+        self.ax2.set_title("Q-Table")
+        mapy = plt.get_cmap('coolwarm')
+        mapy.set_under('grey')
+        im = self.ax2.imshow(np.asmatrix(np.zeros((self.xmax*self.ymax,8))), 
+                             interpolation='nearest', cmap=mapy, vmin=-10, 
+                             vmax=10, aspect='auto')
+        self.fig.colorbar(im,ax=self.ax2, extend='min')
+        #self.ax2.axes.get_xaxis().set_visible(False)
+        #self.ax2.axes.get_yaxis().set_visible(False)
+        self.ax3.set_title("Score through time")
+        #self.ax3.axes.get_xaxis().set_visible(False)
+        #self.ax3.axes.get_yaxis().set_visible(False)
+    
     
         # scale the plot area conveniently
         self.ax1.set_xlim(self.xmin-0.5,self.xmax-0.5)
         self.ax1.set_ylim(self.ymin-0.5,self.ymax-0.5)
         self.ax1.xaxis.set_major_locator(MaxNLocator(integer=True))
         self.ax1.yaxis.set_major_locator(MaxNLocator(integer=True))
-        
+        plt.tight_layout()
         
 
     def addColors(self):
@@ -62,9 +68,24 @@ class Grid:
                     
     def plotReward(self,list_episode,list_reward):
         self.ax3.cla()
+        self.ax3.set_title("Score over time")
         self.ax3.plot(list_episode,list_reward)
-        plt.pause(2)
-    
+        self.ax3.xaxis.set_major_locator(MaxNLocator(integer=True))
+        plt.pause(0.05)
+        
+    def plotQTable(self, Qtable):
+        self.ax2.cla()
+        self.ax2.set_title("Q-Table")
+        self.ax2.set_yticks(np.arange(len(Qtable)))
+        self.ax2.set_yticklabels([str(i) for i in range(0,len(Qtable))])
+        self.ax2.set_xticks(np.arange(0,8))
+        self.ax2.set_xticklabels(["E","NE","N","NW","W","SW","S","SE"])
+        mapy = plt.get_cmap('coolwarm')
+        mapy.set_under('grey')
+        im = self.ax2.imshow(np.asmatrix(Qtable), interpolation='nearest',
+                      cmap=mapy, vmin=-20, vmax=50, aspect='auto')
+        plt.pause(0.05)
+        
     def show(self):
         plt.show()
     
@@ -82,5 +103,11 @@ if __name__=='__main__':
     grid = Grid(distMatrix)
     grid.addColors()
     grid.plotReward([1,2,3],[1.26,1.39,1.8])
+    #grid.plotQTable(np.array([[2.3,0,0.3,-5.7],[0.65,-2,0.3,0.75]]))
+    q = np.random.randint(-5,5, size=(18, 8))
+    q[0,0]= -1000
+    grid.plotQTable(q)
     grid.plotReward([1,2,3,4],[1.26,1.39,1.8,4])
+    q[0,0] = 2
+    grid.plotQTable(q)
     grid.show()
