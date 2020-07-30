@@ -32,10 +32,10 @@ def defineStates(area):
     for i in range(len(area)-1,-1,-1):
         states.append([])
         for j in range(k):
-            states[k-i].append(i*k + j)
+            states[len(area)-1-i].append(i*k + j)
     return(states)
 
-def defineReward(matrix, goal):
+def defineRewardDistance(matrix, goal):
     reward = np.zeros(matrix.shape)
     ymax, xmax = matrix.shape
     goal = (ymax-goal[1],goal[0]+1)
@@ -49,19 +49,31 @@ def defineReward(matrix, goal):
                 reward[i,j] =- 1000
     return(reward)
 
+def defineRewardClassic(matrix, goal):
+    reward = - 5*np.ones(matrix.shape)
+    ymax, xmax = matrix.shape
+    for i in range(ymax):
+        for j in range(xmax):
+            if matrix[i,j] < 0:
+                reward[i,j] =- 100
+    reward[ymax-goal[1], goal[0]] = 25
+    return(reward)
+
 class EnvGrid(object):
     
     def __init__(self, Matrix, start, end, wind_speed, wind_angle, deadZoneRange):
         super(EnvGrid, self).__init__()
         
         self.grid = Matrix
-        self.reward = defineReward(Matrix, end)
+        #self.reward = defineRewardDistance(Matrix, end)
+        self.reward = defineRewardClassic(Matrix, end)
         self.xlim = Matrix.shape[1] -1
         self.ylim = Matrix.shape[0] -1
         
-        # starting position
+        # main positions
         self.x0, self.y0 = start[0], start[1]
         self.x, self.y = start[0], start[1]
+        self.xEnd, self.yEnd = end[0], end[1]
         
         # states
         self.states = defineStates(Matrix)
@@ -117,7 +129,7 @@ class EnvGrid(object):
         return (newState, newReward)
     
     def is_finished(self):
-        return(self.getReward() == self.reward.max())
+        return((self.x == self.xEnd) and (self.y==self.yEnd))
     
     def show(self):
         pass
@@ -137,11 +149,20 @@ if __name__=='__main__':
     wind_speed = 2
     deadZoneRange =  1.22 # 80 degrees
     
-    Map = np.array([[0,0,0,0],
-                    [0,0,0,0],
-                    [0,0,0,0],
-                    [0,0,0,0],
-                    [0,0,0,-1]])
+    # Map = np.array([[0,0,0,0],
+    #                 [0,0,0,0],
+    #                 [0,0,0,0],
+    #                 [0,0,0,0],
+    #                 [0,0,0,-1]])
+    
+    Map = np.array([[-1,-1,-1,-1,-1,-1,-1,-1],
+                      [-1,-1,0,0,0,0,-1,-1],
+                      [-1,0,0,0,0,0,0,-1],
+                      [-1,0,0,0,0,0,0,-1],
+                      [-1,0,0,0,0,0,-1,-1],
+                      [-1,0,0,0,0,0,0,-1],
+                      [-1,-1,0,0,0,0,0,-1],
+                      [-1,0,0,0,0,0,-1,-1]])
     
     # Q-Learning parameters
     α = 0.1 # learning rate
@@ -149,18 +170,21 @@ if __name__=='__main__':
     ε = 0.4 # random explorer
     
     # Q-Learning tools
-    env = EnvGrid(Map, (1,0), (3,4), wind_speed, wind_angle, deadZoneRange)
+    env = EnvGrid(Map, (3,0), (4,6), wind_speed, wind_angle, deadZoneRange)
     Q = np.zeros(((max(max(env.states)))+1, len(env.realActions)))
     
     # Plot
     grid = Grid(Map)
-    episodes = 100
-    grid.addColors()
+    episodes = 200
+    grid.plotMap([env.getState(),52])
     grid.plotQTable(Q)
-    
+    score = []
+    path = []
     for _ in range(episodes):
         # Reset the game
         st = env.reset()
+        score.append(0)
+        path = [st]
         while not env.is_finished():
             #env.show()
             #at = int(input("$>"))
@@ -175,16 +199,23 @@ if __name__=='__main__':
             Q[st][at] = Q[st][at] + α*(r + γ *Q[stp1][atp1] - Q[st][at])
     
             st = stp1
+            score[-1] = score[-1] + 1 + min(0,r)
+            path.append(st)
+        # plotting
+        grid.plotMap(path)
+        grid.plotReward(range(len(score)),score)
+        
         Qplot = copy(Q)
         for i in env.impo:
             Qplot = np.insert(Qplot, i, 0, axis=1)
         grid.plotQTable(Qplot)
+        
         print(str(_)) 
         
     for s in range(1, len(Q)):
         print(s, Q[s])
     
+    print(path)
     
-    
-    # grid.show()
+    grid.show()
     

@@ -33,9 +33,11 @@ class Grid:
         self.ax2.set_title("Q-Table")
         mapy = plt.get_cmap('coolwarm')
         mapy.set_under('grey')
-        im = self.ax2.imshow(np.asmatrix(np.zeros((self.xmax*self.ymax,8))), 
-                             interpolation='nearest', cmap=mapy, vmin=-10, 
-                             vmax=10, aspect='auto')
+        im = self.ax2.imshow(np.asmatrix(np.zeros((self.xmax*self.ymax-1,8))), 
+                             interpolation='nearest', cmap=mapy, vmin=-20, 
+                             vmax=50, aspect='auto')
+        self.ax2.set_yticks(np.arange(0,self.xmax*self.ymax-1,10))
+        self.ax2.set_yticklabels([str(i) for i in range(0,self.xmax*self.ymax-1,10)])
         self.fig.colorbar(im,ax=self.ax2, extend='min')
         #self.ax2.axes.get_xaxis().set_visible(False)
         #self.ax2.axes.get_yaxis().set_visible(False)
@@ -52,20 +54,46 @@ class Grid:
         plt.tight_layout()
         
 
-    def addColors(self):
+    def plotMap(self,listOfStates = []):
+        self.ax1.cla()
+        self.ax1.set_title("Q-Learning algorithm strategy", fontsize=15)
+        self.ax1.set_xlim(self.xmin-0.5,self.xmax-0.5)
+        self.ax1.set_ylim(self.ymin-0.5,self.ymax-0.5)
+        self.ax1.xaxis.set_major_locator(MaxNLocator(integer=True))
+        self.ax1.yaxis.set_major_locator(MaxNLocator(integer=True))
+        
         for i in range(0,self.xmax):
             for j in range(0,self.ymax):
+                # if self.Map[j,i] == 0:
+                #     color = "yellowgreen"
                 if self.Map[j,i] == 0:
-                    color = "yellowgreen"
-                if self.Map[j,i] > 0:
                     color = "lightseagreen"     
-                if self.Map[j,i] <=-10:
-                    color = "lightblue"
+                if self.Map[j,i] ==-1:
+                    color = "grey"
                 self.ax1.add_artist(
                     patches.Rectangle((i-0.5,self.ymax-j-1.5), 1, 1,
                                       facecolor = color,
                                       fill = True))
-                    
+        
+        if len(listOfStates)>0:
+            for k in range(len(listOfStates)):
+                if (k == 0 or k == len(listOfStates)-1 or 
+                    listOfStates[k]==listOfStates[0]) :
+                    color = "green"
+                else:
+                    color = "orange"
+                posy = self.ymax-1 -listOfStates[k]//(self.ymax)
+                posx = listOfStates[k]%(self.ymax)
+                self.ax1.add_artist(
+                        patches.Rectangle((posx-0.5,self.ymax-posy-1.5), 1, 1,
+                                          facecolor = color,fill = True))
+                
+        for i in range(0,self.xmax+1):
+            for j in range(0, self.ymax):
+                text = self.ax1.text(j, i, i*(self.ymax) +j,
+                        ha="center", va="center", color="w", fontsize = 6)
+        plt.pause(0.05)
+        
     def plotReward(self,list_episode,list_reward):
         self.ax3.cla()
         self.ax3.set_title("Score over time")
@@ -76,8 +104,8 @@ class Grid:
     def plotQTable(self, Qtable):
         self.ax2.cla()
         self.ax2.set_title("Q-Table")
-        self.ax2.set_yticks(np.arange(len(Qtable)))
-        self.ax2.set_yticklabels([str(i) for i in range(0,len(Qtable))])
+        self.ax2.set_yticks(np.arange(0,len(Qtable),10))
+        self.ax2.set_yticklabels([str(i) for i in range(0,len(Qtable),10)])
         self.ax2.set_xticks(np.arange(0,8))
         self.ax2.set_xticklabels(["E","NE","N","NW","W","SW","S","SE"])
         mapy = plt.get_cmap('coolwarm')
@@ -91,23 +119,24 @@ class Grid:
     
 if __name__=='__main__':
     
-    distMatrix = np.array([[-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000],
-                         [-1000,-1000,3,2,1,2,-1000,-1000],
-                         [-1000,3,2,1,0,1,2,-1000],
-                         [-1000,4,3,2,1,2,3,-1000],
-                         [-1000,5,4,3,2,3,-1000,-1000],
-                         [-1000,6,5,4,3,4,5,-1000],
-                         [-1000,-1000,6,5,4,5,6,-1000],
-                         [-1000,8,7,6,5,7,-1000,-1000]])
+    distMatrix = np.array([[-1,-1,-1,-1,-1,-1,-1,-1],
+                          [-1,-1,0,0,0,0,-1,-1],
+                          [-1,0,0,0,0,0,0,-1],
+                          [-1,0,0,0,0,0,0,-1],
+                          [-1,0,0,0,0,0,-1,-1],
+                          [-1,0,0,0,0,0,0,-1],
+                          [-1,-1,0,0,0,0,0,-1],
+                          [-1,0,0,0,0,0,-1,-1]])
 
     grid = Grid(distMatrix)
-    grid.addColors()
+    grid.plotMap()
     grid.plotReward([1,2,3],[1.26,1.39,1.8])
     #grid.plotQTable(np.array([[2.3,0,0.3,-5.7],[0.65,-2,0.3,0.75]]))
-    q = np.random.randint(-5,5, size=(18, 8))
+    q = np.random.randint(-5,5, size=(64, 8))
     q[0,0]= -1000
     grid.plotQTable(q)
     grid.plotReward([1,2,3,4],[1.26,1.39,1.8,4])
     q[0,0] = 2
     grid.plotQTable(q)
+    # grid.plotMap([3,10,17])
     grid.show()
