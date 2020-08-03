@@ -1,7 +1,7 @@
 # smart-water-quality-monitoring
 Project carried out as part of an internship on autonomous sailboats.  
 * First goal: the boat must be equipped with various sensors to analyze the quality of water in a certain area. Part 1 explains how the sensors are connected and their data exploited, part 2 details the communication strategy used between the boat and the sensors kit, and part 3 deals with final data processing on the boat.
-* Second goal: the boat has to make measurements at various points on a map, with constraints linked to the environment.  
+* Second goal: the boat has to make measurements at various points on a map, with constraints linked to the environment. Its route must be planned to be the shortest and the quickest as possible.
 
 
 ## Part 1 : measurements on Arduino Bluno
@@ -21,3 +21,11 @@ A guide is provided in **[Wiki section](https://github.com/AgatheArchet/smart-wa
 Finally, once collected by the Raspberry Pi, the data must be correctly sorted and filtered before being sent to the user. A middleware architecture will be used (ROS melodic). 
 
 A guide is provided in **[Wiki section](https://github.com/AgatheArchet/smart-water-quality-monitoring/wiki) > [A middleware achitecture on Raspberry Pi](https://github.com/AgatheArchet/smart-water-quality-monitoring/wiki/A-middleware-architecture-on-Raspberry-Pi)**.
+
+## Part 4 : modelisation of the boat and the wind for path planning
+
+## Part 5 : static algorithms for the TSP
+
+## Part 6 : obstacles avoidance strategies
+
+## Part 7 : Q-Learning dynamic algorithms
