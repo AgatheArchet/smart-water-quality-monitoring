@@ -22,7 +22,7 @@ Finally, once collected by the Raspberry Pi, the data must be correctly sorted a
 
 A guide is provided in **[Wiki section](https://github.com/AgatheArchet/smart-water-quality-monitoring/wiki) > [A middleware achitecture on Raspberry Pi](https://github.com/AgatheArchet/smart-water-quality-monitoring/wiki/A-middleware-architecture-on-Raspberry-Pi)**.
 
-## Part 4 : control of the boat and modelling for path planning
+## Part 4 : Preparation of the boat and the model for path planning
 
 The problem modelling should take into account all constraints associated with the sailboat's properties, the wind's speed and direction as well as borders and obstacles of the area.
 
