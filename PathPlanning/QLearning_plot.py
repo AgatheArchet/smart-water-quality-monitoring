@@ -67,7 +67,7 @@ class Grid:
                 # if self.Map[j,i] == 0:
                 #     color = "yellowgreen"
                 if self.Map[j,i] == 0:
-                    color = "lightseagreen"     
+                    color = "lightseagreen"   
                 if self.Map[j,i] ==-1:
                     color = "grey"
                 self.ax1.add_artist(
@@ -80,17 +80,18 @@ class Grid:
                 if (k == 0 or k == len(listOfStates)-1 or 
                     listOfStates[k]==listOfStates[0]) :
                     color = "green"
+                    #print("green : "+str(listOfStates[k]))
                 else:
                     color = "orange"
-                posy = self.ymax-1 -listOfStates[k]//(self.ymax)
-                posx = listOfStates[k]%(self.ymax)
+                posy = self.ymax -1 -listOfStates[k]//(self.xmax)
+                posx = listOfStates[k]%(self.xmax)
                 self.ax1.add_artist(
                         patches.Rectangle((posx-0.5,self.ymax-posy-1.5), 1, 1,
                                           facecolor = color,fill = True))
                 
         for i in range(0,self.xmax+1):
-            for j in range(0, self.ymax):
-                text = self.ax1.text(j, i, i*(self.ymax) +j,
+            for j in range(0, self.ymax+1):
+                self.ax1.text(j, i, i*(self.xmax) +j,
                         ha="center", va="center", color="w", fontsize = 6)
         plt.pause(0.05)
         
@@ -117,12 +118,32 @@ class Grid:
     def show(self):
         plt.show()
     
+    
 if __name__=='__main__':
+    
+    # distMatrix = np.array([[-1,-1,-1,-1,-1,-1,-1,-1,-1],
+    #                       [-1,-1,0,0,0,0,0,-1,-1],
+    #                       [-1,0,0,0,0,0,0,0,-1],
+    #                       [-1,0,0,0,0,0,0,0,-1],
+    #                       [-1,0,0,0,0,0,0,-1,-1],
+    #                       [-1,0,0,0,0,0,0,0,-1],
+    #                       [-1,-1,0,0,0,0,0,0,-1],
+    #                       [-1,0,0,0,0,0,0,-1,-1]])
+    
+    # distMatrix = np.array([[-1,-1,-1,-1,-1,-1,-1,-1],
+    #                       [-1,-1,0,0,0,0,-1,-1],
+    #                       [-1,0,0,0,0,0,0,-1],
+    #                       [-1,0,0,0,0,0,0,-1],
+    #                       [-1,0,0,0,0,0,-1,-1],
+    #                       [-1,0,0,0,0,0,0,-1],
+    #                       [-1,-1,0,0,0,0,0,-1],
+    #                       [-1,0,0,0,0,0,-1,-1]])
     
     distMatrix = np.array([[-1,-1,-1,-1,-1,-1,-1,-1],
                           [-1,-1,0,0,0,0,-1,-1],
                           [-1,0,0,0,0,0,0,-1],
                           [-1,0,0,0,0,0,0,-1],
+                          [-1,0,0,0,0,0,-1,-1],
                           [-1,0,0,0,0,0,-1,-1],
                           [-1,0,0,0,0,0,0,-1],
                           [-1,-1,0,0,0,0,0,-1],
@@ -138,5 +159,5 @@ if __name__=='__main__':
     grid.plotReward([1,2,3,4],[1.26,1.39,1.8,4])
     q[0,0] = 2
     grid.plotQTable(q)
-    # grid.plotMap([3,10,17])
+    grid.plotMap([3,10,17])
     grid.show()

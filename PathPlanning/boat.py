@@ -210,15 +210,18 @@ def draw_arrow(x,y,θ,L,col):
 def plot2D(M,col='black',w=1):
     plt.plot(M[0, :], M[1, :], col, linewidth = w) 
     
-def init_figure(path): 
+def init_figure(path, xmin = None, xmax = None, ymin = None, ymax = None): 
     fig = plt.figure(3)
     ax = fig.add_subplot(111, aspect='equal')	
-    ax.xmin=min(path, key=lambda x: x[0])[0,0]-20
-    ax.xmax=max(path, key=lambda x: x[0])[0,0]+20
-    ax.ymin=min(path, key=lambda x: x[1])[1,0]-20
-    ax.ymax=max(path, key=lambda x: x[1])[1,0]+20
+    if xmin == None:
+        ax.xmin=min(path, key=lambda x: x[0])[0,0]-20
+        ax.xmax=max(path, key=lambda x: x[0])[0,0]+20
+        ax.ymin=min(path, key=lambda x: x[1])[1,0]-20
+        ax.ymax=max(path, key=lambda x: x[1])[1,0]+20
+    else:
+        ax.xmin, ax.xmax, ax.ymin, ax.ymax = xmin, xmax, ymin, ymax
     clear(ax)
-    return ax       
+    return ax     
     
 def clear(ax):
     plt.pause(0.001)

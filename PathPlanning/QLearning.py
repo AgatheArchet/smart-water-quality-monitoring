@@ -11,8 +11,21 @@ from math import pi
 import random
 from QLearning_plot import Grid
 
-def defineActions(wind_speed,wind_angle, dead_zone_range):
+def defineActions(wind_speed, wind_angle, dead_zone_range):
+    """
+    defines feasible and impossible actions (directions) that the boat can 
+    perform without moving against the wind. All actions are allowed if there 
+    is no wind.
+        
+    0: East | 1: North-East | 2: North | 3: North-West 
+    4: West | 5: South-West | 6: South | 7: South-East
     
+    Parameters
+    ----------
+    wind_speed : positive float in m/s
+    wind_angle : float (radians)
+    dead_zone_range : float (radians)
+    """
     directions = {0:"E", 1:"NE", 2:"N", 3:"NW", 4:"W", 5:"SW", 6:"S", 7:"SE"}
     actions = []
     impossible = []
@@ -26,7 +39,9 @@ def defineActions(wind_speed,wind_angle, dead_zone_range):
     return(actions,impossible)
 
 def defineStates(area):
-    
+    """
+    numbers all cells of the area to define unique states for the Q-Table.
+    """
     states = []
     k = len(area[0])
     for i in range(len(area)-1,-1,-1):
@@ -36,6 +51,23 @@ def defineStates(area):
     return(states)
 
 def defineRewardDistance(matrix, goal):
+    """
+    creates a reward matrix based on distance between cells. The goal has the 
+    highest possible reward (acts like a climb-gradient function).
+    
+    eg.
+    
+    matrix =  0  0 -1   with goal (0,0) gives reward =   5    4 -1000
+              0  0  0                                    4    3   2
+             -1  0  0                                  -1000  2   1
+             
+    Parameters
+    ----------
+    
+    matrix : numpy array
+        matrix where obstacle cells equal -1 and other cells equal 0.
+    goal : tuple
+    """
     reward = np.zeros(matrix.shape)
     ymax, xmax = matrix.shape
     goal = (ymax-goal[1],goal[0]+1)
@@ -50,23 +82,84 @@ def defineRewardDistance(matrix, goal):
     return(reward)
 
 def defineRewardClassic(matrix, goal):
+    """
+    creates a reward matrix based on the nature of cells. The goal is highly
+    rewarded, the obstacles are sanctionned.
+
+    eg.
+    
+    matrix =  0  0 -1   with goal (0,0) gives reward =  25   0 -100
+              0  0  0                                    0   0   0
+             -1  0  0                                  -100  0   0
+    
+    Parameters
+    ----------
+    
+    matrix : numpy array
+        matrix where obstacle cells equal -1 and other cells equal 0.
+    goal : tuple
+    """
     reward = - 5*np.ones(matrix.shape)
     ymax, xmax = matrix.shape
     for i in range(ymax):
         for j in range(xmax):
-            if matrix[i,j] < 0:
+            if matrix[i,j] == -1:
                 reward[i,j] =- 100
     reward[ymax-goal[1], goal[0]] = 25
     return(reward)
 
 class EnvGrid(object):
+    """
+    A class that modelizes the environment in which the Q-Learning agent 
+    evolves.
     
+    Attributes
+    ----------
+    
+    grid : numpy matrix
+        the matrix of the environement by default.
+    reward : numpy matrix
+        the associated reward matrix.
+    xlim,ylim : floats
+        shape of the area.
+    x0, y0 : floats
+        coordinates of initial state.
+    x, y : floats
+        coordinates of current state.
+    xEnd, YEnd : floats
+        coordinates of the goal to reach.
+    states: nested list of integers
+        list of the different states, callable by their coordinates.
+    directions : list of list of integers
+        contains the change in coordinates when performing a specific action.
+    realActions : list of integers
+        list of allowed actions due to the wind constraints.
+    impo : list of integers
+        complementary list of realActions, with all impossible actions for the
+        agent.
+    sol : None / list of integers
+        path with the states that lead to the most optimal solution found.
+        None by default, of if there is no solution yet.
+    
+    Methods
+    -------
+    
+    reset()
+    getGridCoords()
+    getState(other)
+    getReaward()
+    step(action)
+    is_finished()
+    isThereASolution(Q)
+    getOptimalPath(Q)
+    
+    """
     def __init__(self, Matrix, start, end, wind_speed, wind_angle, deadZoneRange):
         super(EnvGrid, self).__init__()
         
         self.grid = Matrix
-        #self.reward = defineRewardDistance(Matrix, end)
-        self.reward = defineRewardClassic(Matrix, end)
+        self.reward = defineRewardDistance(Matrix, end)
+        #self.reward = defineRewardClassic(Matrix, end)
         self.xlim = Matrix.shape[1] -1
         self.ylim = Matrix.shape[0] -1
         
@@ -89,7 +182,13 @@ class EnvGrid(object):
                            [1,-1]]  # SE
         self.realActions, self.impo =  defineActions(wind_speed, wind_angle, deadZoneRange)
         
+        # final solution
+        self.sol = None
+        
     def reset(self):
+        """
+        reinitialises to initial position, and returns inital state.
+        """
         self.x = self.x0
         self.y = self.y0
         return(self.getState())
@@ -102,11 +201,14 @@ class EnvGrid(object):
         posx, posy = self.ylim-self.y, self.x
         return(posx,posy)
     
-    def getState(self):
+    def getState(self, other=None):
         """
         gives the state associated with the boat's position.
         """
-        posx, posy = self.getGridCoords()
+        if other == None:
+            posx, posy = self.getGridCoords()
+        else:
+            posx, posy = self.ylim-other[1], other[0]
         return(self.states[posx][posy])
     
     def getReward(self):
@@ -118,7 +220,7 @@ class EnvGrid(object):
     
     def step(self, action):
         """
-        performes an action and return the new observation of the environment
+        performes an action and returns the new observation of the environment
         (new state and reward)
 
         """
@@ -131,8 +233,41 @@ class EnvGrid(object):
     def is_finished(self):
         return((self.x == self.xEnd) and (self.y==self.yEnd))
     
-    def show(self):
-        pass
+    def isThereASolution(self,Q):
+        """
+        tests if the Q-Table values are different enough to find an optimal 
+        path.
+        """
+        exist = True
+        state = self.reset()
+        solution = [state]
+        while not self.is_finished():
+            max_action = take_action(state, Q, 0)
+            state, r = self.step(max_action)
+            if state in solution:
+                exist = False
+                solution.append(state)
+                break
+            else:
+                solution.append(state)
+        return(exist) 
+    
+    def getOptimalPath(self, Q):
+        """
+        returns list of states if an optimal path is found at the moment.
+        """
+        state = self.reset()
+        solution = [state]
+        scoring = 0
+        if self.isThereASolution(Q):
+            while not self.is_finished():
+                max_action = take_action(state, Q, 0)
+                state, r = self.step(max_action)
+                scoring = scoring + 1 + min(0,r)
+                solution.append(state)
+            return(solution,scoring)
+        else:
+            return(None, None)
     
 def take_action(st, Q, eps):
     # Take an action
@@ -146,76 +281,68 @@ if __name__=='__main__':
     
     # environement parameters
     wind_angle = 0
-    wind_speed = 2
+    wind_speed = 5
     deadZoneRange =  1.22 # 80 degrees
     
-    # Map = np.array([[0,0,0,0],
-    #                 [0,0,0,0],
-    #                 [0,0,0,0],
-    #                 [0,0,0,0],
-    #                 [0,0,0,-1]])
+    start = (3,1)
+    goal = (4,7)
     
-    Map = np.array([[-1,-1,-1,-1,-1,-1,-1,-1],
-                      [-1,-1,0,0,0,0,-1,-1],
-                      [-1,0,0,0,0,0,0,-1],
-                      [-1,0,0,0,0,0,0,-1],
-                      [-1,0,0,0,0,0,-1,-1],
-                      [-1,0,0,0,0,0,0,-1],
-                      [-1,-1,0,0,0,0,0,-1],
-                      [-1,0,0,0,0,0,-1,-1]])
+    Map = np.array([[-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                      [-1,-1,0,0,0,0,0,-1,-1],
+                      [-1,0,0,0,0,0,0,0,-1],
+                      [-1,0,0,0,0,0,0,0,-1],
+                      [-1,0,0,0,0,0,0,-1,-1],
+                      [-1,0,0,0,0,0,0,0,-1],
+                      [-1,-1,0,0,0,0,0,0,-1],
+                      [-1,0,0,0,0,0,0,-1,-1],
+                      [-1,-1,-1,-1,-1,-1,-1,-1,-1]])
     
     # Q-Learning parameters
-    α = 0.1 # learning rate
-    γ = 0.9 # discount factor
-    ε = 0.4 # random explorer
+    α = 0.8 # learning rate 
+    γ = 0.7 # discount factor
+    ε = 0.3 # random explorer
+    episodes = 1000
     
     # Q-Learning tools
-    env = EnvGrid(Map, (3,0), (4,6), wind_speed, wind_angle, deadZoneRange)
+    env = EnvGrid(Map, start, goal, wind_speed, wind_angle, deadZoneRange)
     Q = np.zeros(((max(max(env.states)))+1, len(env.realActions)))
     
     # Plot
     grid = Grid(Map)
-    episodes = 200
-    grid.plotMap([env.getState(),52])
+    grid.plotMap([env.getState(), env.getState(goal)])
     grid.plotQTable(Q)
     score = []
     path = []
+    
     for _ in range(episodes):
-        # Reset the game
+        # Reset the environment
         st = env.reset()
         score.append(0)
         path = [st]
         while not env.is_finished():
-            #env.show()
-            #at = int(input("$>"))
             at = take_action(st, Q, ε)
-    
             stp1, r = env.step(at)
-            #print("s", stp1)
-            #print("r", r)
-    
             # Update Q function
             atp1 = take_action(stp1, Q, 0.0)
             Q[st][at] = Q[st][at] + α*(r + γ *Q[stp1][atp1] - Q[st][at])
-    
+            #save values
             st = stp1
             score[-1] = score[-1] + 1 + min(0,r)
             path.append(st)
         # plotting
         grid.plotMap(path)
         grid.plotReward(range(len(score)),score)
-        
         Qplot = copy(Q)
         for i in env.impo:
             Qplot = np.insert(Qplot, i, 0, axis=1)
         grid.plotQTable(Qplot)
         
         print(str(_)) 
-        
+    
+    
     for s in range(1, len(Q)):
         print(s, Q[s])
     
-    print(path)
-    
+    print(env.getOptimalPath(Q))
     grid.show()
     

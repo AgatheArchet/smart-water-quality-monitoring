@@ -10,6 +10,7 @@ from numpy.linalg import *
 import matplotlib.pyplot as plt
 import math as m
 from scipy.integrate import odeint
+from scipy.integrate import solve_ivp
         
 class Boat():
     """
@@ -99,7 +100,6 @@ class Boat():
         plot2D(R@Rs@sail,'red');       
         plot2D(R@Rr@rudder,'red'); 
         if(showTrajectory):
-            self.trajectory.append((x[0],x[1]))
             plt.plot([i[0] for i in self.trajectory],[j[1] for j in self.trajectory],'--',color="yellowgreen")
             
     def f(self):
@@ -175,6 +175,8 @@ class Boat():
         if round(self.t,2)%plot_frequence==0:
             plt.plot([a[0,0],b[0,0]],[a[1,0],b[1,0]],linestyle='dotted',color="red")
             plt.plot([i[0,0] for i in path],[j[1,0] for j in path],'co')
+            if showTrajectory:
+                self.trajectory.append((self.x[0],self.x[1]))
             self.draw_sailboat(δs,self.u[0,0],showTrajectory)
             clear(ax)
         if ((b-a).T)@(b-array([[self.x[0,0]],[self.x[1,0]]]))<0:
@@ -184,9 +186,30 @@ class Boat():
 def f_ode(x,t,boat,ax,path,showTrajectory=False):
     boat.x = array([x]).T
     a,b = path[0], path[1]
+    print(boat.x)
     boat.controller(a,b)
     xdot,δs = boat.f()
-    if round(t,2)%0.2==0:
+    if showTrajectory:
+       boat.trajectory.append((boat.x[0],boat.x[1]))
+#    if round(t,2)%0.5==0:
+#        plt.plot([a[0,0],b[0,0]],[a[1,0],b[1,0]],linestyle='dotted',color="red")
+#        plt.plot([i[0,0] for i in path],[j[1,0] for j in path],'co')
+#        boat.draw_sailboat(δs,boat.u[0,0],showTrajectory)
+#        clear(ax)
+    if ((b-a).T)@(b-array([[boat.x[0,0]],[boat.x[1,0]]]))<0:
+        path.append(path.pop(0))
+        a,b = a,b = path[0], path[1]
+    return((xdot.T).tolist()[0])
+    
+def f_ode_45(t,x,boat,ax,path,showTrajectory=False):
+    boat.x = array([x]).T
+    a,b = path[0], path[1]
+    boat.controller(a,b)
+    xdot,δs = boat.f()
+    print(t)
+    if showTrajectory:
+        boat.trajectory.append((boat.x[0],boat.x[1]))
+    if round(t,10)%(1)==0:
         plt.plot([a[0,0],b[0,0]],[a[1,0],b[1,0]],linestyle='dotted',color="red")
         plt.plot([i[0,0] for i in path],[j[1,0] for j in path],'co')
         boat.draw_sailboat(δs,boat.u[0,0],showTrajectory)
@@ -247,5 +270,10 @@ if __name__=='__main__':
     
     B = Boat(x0,a_tw, ψ_tw, r, ζ, δrmax, β)
     
-    t = arange(0,10000,0.2)
-    y = odeint(f_ode,(x0.T).tolist()[0],t, args =(B,ax,path,True))
+    
+#    for t in arange(0,10000,dt):
+#        B.nextStep(ax,path,dt,showTrajectory=True)
+    
+    for t in range(0,50):
+        y = solve_ivp(f_ode_45, (0,0.5),(x0.T).tolist()[0],method='RK45',args =(B,ax,path,True))
+        x0 = y.y[:,-1].reshape((5,1))

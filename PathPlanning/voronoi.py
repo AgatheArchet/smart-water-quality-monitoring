@@ -10,6 +10,14 @@ from scipy.spatial import Voronoi, ConvexHull
 import matplotlib.pyplot as plt
 import numpy as np
 from copy import deepcopy
+from math import pi
+from boat import *
+
+def extractDuplicate(a):
+    b = list(set(a))
+    for elem in b:
+        a.remove(elem)
+    return(a)
 
 def isInsidePolygon(n,Vx,Vy,x,y):
     """
@@ -214,7 +222,7 @@ if __name__=='__main__':
 
 #-----------------Select the source and destination for the path -------------
     src = 0
-    dst = 29
+    dst = 45
     path = dijkstra(G,src,dst)
 
 #------------------------------------------------------------------------------
@@ -240,7 +248,58 @@ if __name__=='__main__':
     plt.ylim([ymin-0.5,ymax+0.5])
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', ncol=1,borderaxespad=0.)
     plt.title("Voronoi diagram based avoidance solution")
-    plt.show()
+
     
     #print(vor.vertices)
+    
+    #Converting the path for the map
+    mapPath, factor = [],50
+    for i in range(len(path)-1):
+        mapPath.append(np.array([[factor*list(G.vertices[path[i]])[0]],
+                                       [factor*list(G.vertices[path[i]])[1]]]))
+    start = mapPath[0]
+    end = mapPath[-1]
 
+    # Constructing the autonomous sailboat
+    wind_angle, wind_speed = -pi/2, 2
+    
+    x0= np.array([[-5,310,pi,0.2,0]]).T  #x=(x,y,θ,v,w)
+    a_tw = wind_speed    # true wind force
+    ψ_tw = wind_angle    # true wind angle
+    r = 10      # maximale acceptable distance from target line
+    ζ = pi/4    # closed hauled angle for the no-go zone
+    δrmax = 1   # maximal rudder angle
+    β = pi/4    # angle of the sail in crosswind 
+    B = Boat(x0,a_tw, ψ_tw, r, ζ, δrmax, β)
+    
+    # Matplotlib parameters    
+    dt = 0.1
+    ax=init_figure(mapPath, factor*xmin -10, factor*xmax +10, 
+                            factor*ymin -10, factor*ymax+10)
+    plot_frequency = 10  # every x time period
+    end_index = len(mapPath)
+    
+    # plotting environment
+    for obstacle in obstacles:
+            plt.plot([factor*x for x in obstacle[0]]+[factor*obstacle[0][0]],
+                  [factor*x for x in obstacle[1]]+[factor*obstacle[1][0]],color="blue")
+    plt.plot([factor*i for i in np.array(frame)[:,0]],
+              [factor * i for i in np.array(frame)[:,1]],'*g',label="frame")
+    
+    # Runge-Kutta 45
+    while True:
+        plt.plot([factor*i for i in np.array(frame)[:,0]],
+              [factor * i for i in np.array(frame)[:,1]],'*g',label="frame")
+        for obstacle in obstacles:
+            plt.plot([factor*x for x in obstacle[0]]+[factor*obstacle[0][0]],
+                  [factor*x for x in obstacle[1]]+[factor*obstacle[1][0]],color="blue")
+        y = solve_ivp(f_ode_45, (0,plot_frequency),(x0.T).tolist()[0],method='RK45',
+                      args=(B,ax,mapPath,True))
+        x0 = y.y[:,-1].reshape((5,1))
+        no = np.where(np.array(mapPath).reshape(len(mapPath),2) == end.T)[0]
+        new_index = extractDuplicate(no.tolist())[0]
+        if new_index == 0:
+            break
+    
+    plt.title("Path avoiddance with Voronoi diagram")
+    plt.show()
