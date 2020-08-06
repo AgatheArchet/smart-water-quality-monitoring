@@ -69,14 +69,15 @@ def defineRewardDistance(matrix, goal):
     goal : tuple
     """
     reward = np.zeros(matrix.shape)
-    ymax, xmax = matrix.shape
-    goal = (ymax-goal[1],goal[0]+1)
-    for i in range(ymax):
-        for j in range(xmax):
+    xmax = matrix.shape[1] -1
+    ymax = matrix.shape[0] -1
+    goal = (ymax-goal[1],goal[0])
+    for i in range(ymax+1):
+        for j in range(xmax+1):
             reward[i,j] = abs(i-goal[0]) + abs(j-goal[1])
     reward = np.max(reward)-reward
-    for i in range(ymax):
-        for j in range(xmax):
+    for i in range(ymax+1):
+        for j in range(xmax+1):
             if matrix[i,j] == -1:
                 reward[i,j] =- 1000
     return(reward)
@@ -99,13 +100,14 @@ def defineRewardClassic(matrix, goal):
         matrix where obstacle cells equal -1 and other cells equal 0.
     goal : tuple
     """
-    reward = - 5*np.ones(matrix.shape)
-    ymax, xmax = matrix.shape
-    for i in range(ymax):
-        for j in range(xmax):
+    reward = - 1*np.ones(matrix.shape)
+    xmax = matrix.shape[1] -1
+    ymax = matrix.shape[0] -1
+    for i in range(ymax+1):
+        for j in range(xmax+1):
             if matrix[i,j] == -1:
                 reward[i,j] =- 100
-    reward[ymax-goal[1], goal[0]] = 25
+    reward[ymax-goal[1], goal[0]] = 100
     return(reward)
 
 class EnvGrid(object):
@@ -158,8 +160,6 @@ class EnvGrid(object):
         super(EnvGrid, self).__init__()
         
         self.grid = Matrix
-        self.reward = defineRewardDistance(Matrix, end)
-        #self.reward = defineRewardClassic(Matrix, end)
         self.xlim = Matrix.shape[1] -1
         self.ylim = Matrix.shape[0] -1
         
@@ -250,6 +250,7 @@ class EnvGrid(object):
                 break
             else:
                 solution.append(state)
+        state = self.reset()
         return(exist) 
     
     def getOptimalPath(self, Q):
@@ -267,7 +268,15 @@ class EnvGrid(object):
                 solution.append(state)
             return(solution,scoring)
         else:
-            return(None, None)
+            return([], 0)
+        
+    def show(self,grid,Q,path,score,finalPath=False):
+        grid.plotMap(path,finalPath)
+        grid.plotReward(range(len(score)),score)
+        Qplot = copy(Q)
+        for i in env.impo:
+            Qplot = np.insert(Qplot, i, 0, axis=1)
+        grid.plotQTable(Qplot)
     
 def take_action(st, Q, eps):
     # Take an action
@@ -279,6 +288,8 @@ def take_action(st, Q, eps):
 
 if __name__=='__main__':
     
+#------------------------Customize this area-----------------------------------
+
     # environement parameters
     wind_angle = 0
     wind_speed = 5
@@ -301,48 +312,74 @@ if __name__=='__main__':
     α = 0.8 # learning rate 
     γ = 0.7 # discount factor
     ε = 0.3 # random explorer
-    episodes = 1000
+    episodes = 10000
     
-    # Q-Learning tools
+    # plotting parameters
+    plotEachStep = False
+    qmin, qmax = -10, 50 # range for Q-Table coloring 
+    rmin,rmax = None,None # range for reward graph if needed
+    
+#------------------------------------------------------------------------------    
+    
+    # Q-Learning tool
     env = EnvGrid(Map, start, goal, wind_speed, wind_angle, deadZoneRange)
+    
+#-----------------------------Chose the reward system--------------------------
+
+    # distance rewarding
+    # Q = np.zeros(((max(max(env.states)))+1, len(env.realActions)))
+    # Q[env.getState(goal)] = len(env.realActions)*[100]
+    # env.reward = defineRewardDistance(env.grid, goal)
+        
+    # classic rewarding
     Q = np.zeros(((max(max(env.states)))+1, len(env.realActions)))
+    env.reward = defineRewardClassic(env.grid, goal)
+
+#------------------------------------------------------------------------------
     
-    # Plot
-    grid = Grid(Map)
-    grid.plotMap([env.getState(), env.getState(goal)])
-    grid.plotQTable(Q)
-    score = []
-    path = []
+    # Init graphical tools
+    grid = Grid(Map, qmin, qmax,rmin,rmax)
+    score = [0]
+    env.show(grid,Q,[env.getState(), env.getState(goal)],score)
+    if plotEachStep:   
+        path = []
     
-    for _ in range(episodes):
+    for episode in range(episodes):
         # Reset the environment
         st = env.reset()
-        score.append(0)
-        path = [st]
+        if plotEachStep:
+            path = [st]
+        score.append(score[-1])
         while not env.is_finished():
             at = take_action(st, Q, ε)
-            stp1, r = env.step(at)
+            st_new, r = env.step(at)
             # Update Q function
-            atp1 = take_action(stp1, Q, 0.0)
-            Q[st][at] = Q[st][at] + α*(r + γ *Q[stp1][atp1] - Q[st][at])
+            atp_max = take_action(st_new, Q, 0.0)
+            # if episode > 9990:
+            #     print("st: "+str(st_new)+" ac: "+str(at)+" r: "+str(Q[st][at] + α*(r + γ *Q[st_new][atp_max] - Q[st][at])))
+            Q[st][at] = Q[st][at] + α*(r + γ *Q[st_new][atp_max] - Q[st][at])
             #save values
-            st = stp1
-            score[-1] = score[-1] + 1 + min(0,r)
-            path.append(st)
+            score[-1] += α*(r + γ *Q[st_new][atp_max] - Q[st][at])
+            st = st_new
+            if plotEachStep:
+                path.append(st)
+                
         # plotting
-        grid.plotMap(path)
-        grid.plotReward(range(len(score)),score)
-        Qplot = copy(Q)
-        for i in env.impo:
-            Qplot = np.insert(Qplot, i, 0, axis=1)
-        grid.plotQTable(Qplot)
-        
-        print(str(_)) 
+        if plotEachStep:
+            env.show(grid,Q,path,score)
     
+        print(episode) 
     
+    # Final results
     for s in range(1, len(Q)):
         print(s, Q[s])
-    
-    print(env.getOptimalPath(Q))
+        
+    optimalPath,length = env.getOptimalPath(Q)
+    if len(optimalPath)!=0:
+        env.show(grid,Q,optimalPath,score,finalPath=True)
+        print("A solution has been found! One optimal possible path is :")
+        print(optimalPath)
+    else:
+        env.show(grid,Q,[env.getState(start), env.getState(goal)],score)
+        print("No solution have been found yet (presence of loops in Q-Table)...")
     grid.show()
-    

@@ -13,7 +13,7 @@ from matplotlib.ticker import MaxNLocator
 
 class Grid:
     
-    def __init__(self, distMatrix):
+    def __init__(self, distMatrix, Qmin, Qmax, Rmin=None, Rmax=None):
         
         # matrix of the map
         self.Map = distMatrix
@@ -21,6 +21,14 @@ class Grid:
         self.xmax = len(distMatrix[0])
         self.ymin = 0
         self.ymax = len(distMatrix)
+        
+        # Q-Table value range
+        self.qmin = Qmin
+        self.qmax = Qmax
+        
+        # reward graph value range
+        self.rmin = Rmin
+        self.rmax = Rmax
         
         # create a 8" x 8" board
         gridsize = (3,3)
@@ -34,14 +42,14 @@ class Grid:
         mapy = plt.get_cmap('coolwarm')
         mapy.set_under('grey')
         im = self.ax2.imshow(np.asmatrix(np.zeros((self.xmax*self.ymax-1,8))), 
-                             interpolation='nearest', cmap=mapy, vmin=-20, 
-                             vmax=50, aspect='auto')
+                             interpolation='nearest', cmap=mapy, vmin=self.qmin, 
+                             vmax=self.qmax, aspect='auto')
         self.ax2.set_yticks(np.arange(0,self.xmax*self.ymax-1,10))
         self.ax2.set_yticklabels([str(i) for i in range(0,self.xmax*self.ymax-1,10)])
         self.fig.colorbar(im,ax=self.ax2, extend='min')
         #self.ax2.axes.get_xaxis().set_visible(False)
         #self.ax2.axes.get_yaxis().set_visible(False)
-        self.ax3.set_title("Score through time")
+        self.ax3.set_title("Accumulated score over time")
         #self.ax3.axes.get_xaxis().set_visible(False)
         #self.ax3.axes.get_yaxis().set_visible(False)
     
@@ -54,7 +62,7 @@ class Grid:
         plt.tight_layout()
         
 
-    def plotMap(self,listOfStates = []):
+    def plotMap(self,listOfStates = [], finalPath=False):
         self.ax1.cla()
         self.ax1.set_title("Q-Learning algorithm strategy", fontsize=15)
         self.ax1.set_xlim(self.xmin-0.5,self.xmax-0.5)
@@ -76,13 +84,22 @@ class Grid:
                                       fill = True))
         
         if len(listOfStates)>0:
+            finalx,finaly = [],[]
             for k in range(len(listOfStates)):
                 if (k == 0 or k == len(listOfStates)-1 or 
                     listOfStates[k]==listOfStates[0]) :
                     color = "green"
                     #print("green : "+str(listOfStates[k]))
-                else:
-                    color = "orange"
+                    if finalPath:
+                        finalx.append(listOfStates[k]%(self.xmax))
+                        finaly.append(listOfStates[k]//(self.xmax))
+                else :
+                    if finalPath:
+                        finalx.append(listOfStates[k]%(self.xmax))
+                        finaly.append(listOfStates[k]//(self.xmax))
+                        color = 'lightseagreen'
+                    else:
+                        color = "orange"
                 posy = self.ymax -1 -listOfStates[k]//(self.xmax)
                 posx = listOfStates[k]%(self.xmax)
                 self.ax1.add_artist(
@@ -93,14 +110,18 @@ class Grid:
             for j in range(0, self.ymax+1):
                 self.ax1.text(j, i, i*(self.xmax) +j,
                         ha="center", va="center", color="w", fontsize = 6)
-        plt.pause(0.05)
+        if finalPath:
+            self.ax1.plot(finalx,finaly)
+        plt.pause(0.01)
         
     def plotReward(self,list_episode,list_reward):
         self.ax3.cla()
-        self.ax3.set_title("Score over time")
+        self.ax3.set_title("Accumulated score over time")
         self.ax3.plot(list_episode,list_reward)
         self.ax3.xaxis.set_major_locator(MaxNLocator(integer=True))
-        plt.pause(0.05)
+        if self.rmin !=None:
+            self.ax3.set_ylim([self.rmin,self.rmax])
+        plt.pause(0.01)
         
     def plotQTable(self, Qtable):
         self.ax2.cla()
@@ -112,8 +133,8 @@ class Grid:
         mapy = plt.get_cmap('coolwarm')
         mapy.set_under('grey')
         im = self.ax2.imshow(np.asmatrix(Qtable), interpolation='nearest',
-                      cmap=mapy, vmin=-20, vmax=50, aspect='auto')
-        plt.pause(0.05)
+                      cmap=mapy, vmin=self.qmin, vmax=self.qmax, aspect='auto')
+        plt.pause(0.01)
         
     def show(self):
         plt.show()
@@ -149,7 +170,7 @@ if __name__=='__main__':
                           [-1,-1,0,0,0,0,0,-1],
                           [-1,0,0,0,0,0,-1,-1]])
 
-    grid = Grid(distMatrix)
+    grid = Grid(distMatrix,-20,50)
     grid.plotMap()
     grid.plotReward([1,2,3],[1.26,1.39,1.8])
     #grid.plotQTable(np.array([[2.3,0,0.3,-5.7],[0.65,-2,0.3,0.75]]))
