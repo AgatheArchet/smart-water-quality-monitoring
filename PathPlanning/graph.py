@@ -785,13 +785,14 @@ if __name__=='__main__':
 #    x,y = C.points_lat, C.points_lon
     
     #Coastal
-    GPSpoints = np.array([[1,1],[10,1],[10,10],[9,9],[8,9],[7,10.8],[6,10.8],[6.5,10],[6,8],[5,11],[4,9],[3,8.5],[2,11],[1,10],[1,1]])
-    Coast = Area(100,GPSpoints[0,:],GPSpoints,"coastal")
-    Coast.placeMeasurementPoints()
-    #Coast.generateMap()
-    x,y = Coast.points_lat, Coast.points_lon
+    # GPSpoints = np.array([[1,1],[10,1],[10,10],[9,9],[8,9],[7,10.8],[6,10.8],[6.5,10],[6,8],[5,11],[4,9],[3,8.5],[2,11],[1,10],[1,1]])
+    # Coast = Area(100,GPSpoints[0,:],GPSpoints,"coastal")
+    # Coast.placeMeasurementPoints()
+    # #Coast.generateMap()
+    # x,y = Coast.points_lat, Coast.points_lon
 
-    G = Graph(Coast.contour)
+    G = Graph() 
+    #G = Graph(Coast.contour)
     G.defineWind(angle=pi/2,speed=5)
     G.addVertices(x,y)
 

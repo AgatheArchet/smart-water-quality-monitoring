@@ -262,8 +262,9 @@ if __name__=='__main__':
 #        Boat.nextStep(ax,path,dt,showTrajectory=True,plot_frequency=10)
     
     # Runge-Kutta 45
+    plot_rate = 0.7  # every x time period
     for t in range(0,10000):
-        y = solve_ivp(f_ode_45, (0,0.5),(x0.T).tolist()[0],method='RK45',
+        y = solve_ivp(f_ode_45, (0,plot_rate),(x0.T).tolist()[0],method='RK45',
                       args =(Boat,ax,path,True))
         x0 = y.y[:,-1].reshape((5,1))
     
