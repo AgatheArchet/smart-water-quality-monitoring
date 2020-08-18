@@ -32,13 +32,13 @@ A description is provided in **[Wiki section](https://github.com/AgatheArchet/sm
 
 Now that the sailboat and the measurement zone are defined and modeled, various algorithms can be implemented to solve this specific Travelling Salesman Problem. To make the boat autonomous, various maps and measurement patterns will be used. 
 
-A description is provided in **[Wiki section](https://github.com/AgatheArchet/smart-water-quality-monitoring/wiki) > **
+A description is provided in **[Wiki section](https://github.com/AgatheArchet/smart-water-quality-monitoring/wiki) > [Four different strategies to find our way](https://github.com/AgatheArchet/smart-water-quality-monitoring/wiki/Wiki-:-Four-different-strategies-to-find-our-way)**
 
 ## Part 6 : obstacles avoidance strategies
 
 The majority of coastal areas have irregular borders and obstacles. Then, the autonomous boat must integrate obtacle avoidance strategies when planning its path. 
 
-A description is provided in **[Wiki section](https://github.com/AgatheArchet/smart-water-quality-monitoring/wiki) > **
+A description is provided in **[Wiki section](https://github.com/AgatheArchet/smart-water-quality-monitoring/wiki) > [Integration of borders and obstacles into the map](https://github.com/AgatheArchet/smart-water-quality-monitoring/wiki/Wiki--:-Integration-of-borders-and-obstacles-into-the-map)**
 
 ## Part 7 : intelligent sailboat on TSP (Q-Learning algorithm)
 
